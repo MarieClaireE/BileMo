@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Client;
 use App\Entity\Produit;
+use App\Entity\Utilisateur;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -21,26 +22,31 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
 			// creation de 1 client 'normal'
-
-		    $client = new Client();
-				$client->setCodeClient('CLI12');
-				$client->setRoles(["ROLE_USER"]);
-				$client->setEmail('client12@bilemo.com');
-		    $client->setName('CLIENT');
-				$client->setFirstname('Prénom');
-				$client->setPassword($this->userPasswordHasher->hashPassword($client, 'password'));
-				$manager->persist($client);
-
+	    $superClient = new Client();
+	    $superClient->setCode(00002);
+	    $superClient->setRoles(["SUPER_USER"]);
+	    $superClient->setEmail('client14@bilemo.com');
+	    $superClient->setFullname('CLIENT2 name');
+	    $superClient->setPassword($this->userPasswordHasher->hashPassword($superClient, 'password'));
+	    $manager->persist($superClient);
 
 	    // création d'un client 'admin'
 	    $admin = new Client();
-	    $admin->setCodeClient('CLI11');
+	    $admin->setCode(0);
 	    $admin->setRoles(["ROLE_ADMIN"]);
 	    $admin->setEmail('admin@bilemo.com');
-	    $admin->setName('CLIENTAdmin');
-	    $admin->setFirstname('Prénom');
+	    $admin->setFullname('CLIENTAdmin');
 	    $admin->setPassword($this->userPasswordHasher->hashPassword($admin, 'passwordAdmin'));
 	    $manager->persist($admin);
+
+			// creation d'un utilisateur
+	    $user = new Utilisateur();
+			$user->setCodeClient(00002);
+			$user->setRoles(["ROLE_USER"]);
+			$user->setFullname('USER');
+			$user->setEmail("user@bilemo.com");
+			$user->setPassword($this->userPasswordHasher->hashPassword($user, 'passwordUser'));
+			$manager->persist($user);
 
 			// creation d'une vingtaine de produit
 	      for($i = 0; $i <= 20 ; $i++)  {

@@ -2,15 +2,13 @@
 
 namespace App\Entity;
 
-use App\Repository\ClientRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[ORM\Entity(repositoryClass: ClientRepository::class)]
-class Client implements UserInterface, PasswordAuthenticatedUserInterface
+#[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
+class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -29,16 +27,11 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\Column]
-    private ?int $code = null;
+    #[ORM\Column(nullable: true)]
+    private ?int $codeclient = null;
 
-    #[ORM\Column(length: 100, nullable: true)]
+    #[ORM\Column(length: 150, nullable: true)]
     private ?string $fullname = null;
-
-    public function __construct()
-    {
-        $this->utilisateurs = new ArrayCollection();
-    }
 
     public function getId(): ?int
     {
@@ -110,36 +103,27 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
-		/**
-		 * Méthode getUsername qui permet de retourner le champ qui est utilisé pour l'authentification.
-		 *
-		 * @return string
-		 */
-		public function getUsername(): string {
-			return $this->getUserIdentifier();
-		}
+    public function getCodeclient(): ?int
+    {
+        return $this->codeclient;
+    }
 
-  public function getCode(): ?int
-  {
-      return $this->code;
-  }
+    public function setCodeclient(?int $codeclient): self
+    {
+        $this->codeclient = $codeclient;
 
-  public function setCode(int $code): self
-  {
-      $this->code = $code;
+        return $this;
+    }
 
-      return $this;
-  }
+    public function getFullname(): ?string
+    {
+        return $this->fullname;
+    }
 
-  public function getFullname(): ?string
-  {
-      return $this->fullname;
-  }
+    public function setFullname(?string $fullname): self
+    {
+        $this->fullname = $fullname;
 
-  public function setFullname(?string $fullname): self
-  {
-      $this->fullname = $fullname;
-
-      return $this;
-  }
+        return $this;
+    }
 }
