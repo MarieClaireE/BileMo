@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
 class Client implements UserInterface, PasswordAuthenticatedUserInterface
@@ -15,13 +16,23 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["getClients", "getProduits"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
+    #[Groups(["getClients", "getProduits"])]
     private ?string $email = null;
 
     #[ORM\Column]
+    #[Groups(["getClients", "getProduits"])]
     private array $roles = [];
+
+		#[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'users')]
+		#[Groups(["getClients", "getProduits"])]
+		private ?self $parent = null;
+
+		#[ORM\OneToMany(mappedBy: 'parent', targetEntity: self::class)]
+		private Collection $users;
 
     /**
      * @var string The hashed password
@@ -35,9 +46,13 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $fullname = null;
 
+    #[ORM\OneToMany(mappedBy: 'client', targetEntity: Produit::class)]
+    private Collection $produits;
+
     public function __construct()
     {
         $this->utilisateurs = new ArrayCollection();
+        $this->produits = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -142,4 +157,76 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
 
       return $this;
   }
+
+	public function getParent(): ?self
+               	{
+               		return $this->parent;
+               	}
+
+	public function setParent(?self $parent): self
+               	{
+               		$this->parent = $parent;
+               
+               		return $this;
+               	}
+
+	/**
+	 * @return Collection<int, self>
+	 */
+	public function getUsers(): Collection
+               	{
+               		return $this->users;
+               	}
+
+	public function addUser(self $user): self
+               	{
+               		if (!$this->users->contains($user)) {
+               			$this->users[] = $user;
+               			$user->setParent($this);
+               		}
+               
+               		return $this;
+               	}
+
+	public function removeUser(self $user): self
+               	{
+               		if ($this->users->removeElement($user)) {
+               			// set the owning side to null (unless already changed)
+               			if ($user->getParent() === $this) {
+               				$user->setParent(null);
+               			}
+               		}
+               
+               		return $this;
+               	}
+
+    /**
+     * @return Collection<int, Produit>
+     */
+    public function getProduits(): Collection
+    {
+        return $this->produits;
+    }
+
+    public function addProduit(Produit $produit): self
+    {
+        if (!$this->produits->contains($produit)) {
+            $this->produits->add($produit);
+            $produit->setClient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProduit(Produit $produit): self
+    {
+        if ($this->produits->removeElement($produit)) {
+            // set the owning side to null (unless already changed)
+            if ($produit->getClient() === $this) {
+                $produit->setClient(null);
+            }
+        }
+
+        return $this;
+    }
 }

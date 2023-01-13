@@ -56,6 +56,17 @@ class ClientRepository extends ServiceEntityRepository implements PasswordUpgrad
         $this->save($user, true);
     }
 
+		/**
+		 * @return Client[]
+		 * return an array of users
+		 */
+		public function getUsers()
+		{
+			return $this->createQueryBuilder('u')
+				->where('u.parent IS NOT NULL')
+				->getQuery()
+				->getResult();
+		}
 //    /**
 //     * @return Client[] Returns an array of Client objects
 //     */

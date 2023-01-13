@@ -24,7 +24,7 @@ class AppFixtures extends Fixture
 			// creation de 1 client 'normal'
 	    $superClient = new Client();
 	    $superClient->setCode(00002);
-	    $superClient->setRoles(["SUPER_USER"]);
+	    $superClient->setRoles(['ROLE_ADMIN']);
 	    $superClient->setEmail('client14@bilemo.com');
 	    $superClient->setFullname('CLIENT2 name');
 	    $superClient->setPassword($this->userPasswordHasher->hashPassword($superClient, 'password'));
@@ -33,19 +33,20 @@ class AppFixtures extends Fixture
 	    // création d'un client 'admin'
 	    $admin = new Client();
 	    $admin->setCode(0);
-	    $admin->setRoles(["ROLE_ADMIN"]);
+	    $admin->setRoles(['ROLE_ADMIN']);
 	    $admin->setEmail('admin@bilemo.com');
 	    $admin->setFullname('CLIENTAdmin');
 	    $admin->setPassword($this->userPasswordHasher->hashPassword($admin, 'passwordAdmin'));
 	    $manager->persist($admin);
 
 			// creation d'un utilisateur
-	    $user = new Utilisateur();
-			$user->setCodeClient(00002);
-			$user->setRoles(["ROLE_USER"]);
+	    $user = new Client();
+			$user->setCode(00002);
+			$user->setRoles(['ROLE_USER']);
 			$user->setFullname('USER');
 			$user->setEmail("user@bilemo.com");
 			$user->setPassword($this->userPasswordHasher->hashPassword($user, 'passwordUser'));
+			$user->setParent($superClient);
 			$manager->persist($user);
 
 			// creation d'une vingtaine de produit
@@ -54,6 +55,7 @@ class AppFixtures extends Fixture
 					$produit->setName('Produit ' . $i);
 					$produit->setDescription('Description du produit ' . $i);
 					$produit->setPrice(100,00);
+					$produit->setClient($admin);
 
 	        $manager->persist($produit);
 	      }
