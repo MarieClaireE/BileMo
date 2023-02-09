@@ -62,35 +62,6 @@ class ProduitController extends AbstractController
 			return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);
 		}
 
-		#[Route('api/liste/produits/by/utilisateur/{email}', name:'liste_produits_by_utilisateur', methods:['GET'])]
-		public function getListProductsByUsers(Request $request, string $email):JsonResponse
-		{
-			$produits = [];
-			/**
-			 * @var ClientRepository $clientRepo
-			 */
-			$clientRepo = $this->em->getRepository(Client::class);
-			$user = $clientRepo->findOneBy(['email'=> $email]);
-
-			// récupérer le client lié à l'utilisateur
-			$client = $clientRepo->findOneBy(['id' => $user->getParent()->getId()]);
-
-			// récupérer la liste des produits déposés par le client
-			$produitsCustomer = $this->getRepository()->findBy(['client' => $client->getId()]);
-
-			// récupérer la liste des produits déposés par l'utilisateur
-			$produitsUser = $this->getRepository()->findBy(['client' => $user->getId()]);
-
-			$produits = [
-				$produitsCustomer,
-				$produitsUser
-			];
-
-			$jsonProduct = $this->serializer->serialize($produits, 'json', ['groups' => "getProduits"]);
-
-			return new JsonResponse($jsonProduct, Response::HTTP_OK, [], 'json');
-		}
-
 		#[Route('/api/produits/{id}', name: 'details_produit', methods:['GET'] )]
 		public function getDetailProduit(Produit $produit): JsonResponse
 		{
