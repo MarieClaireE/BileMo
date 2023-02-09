@@ -130,6 +130,7 @@ class ProduitController extends AbstractController
 			if($produit === null) {
 				$message = 'Vous ne pouvez pas supprimer ce produit';
 			} else {
+				$this->cachePool->invalidateTags(['getAllProducts', 'getAllproductsByCustomer']);
 				$this->em->remove($produit);
 				$this->em->flush();
 				$message = 'Produit \'' .$produit->getName(). '\' a été supprimé';

@@ -54,7 +54,7 @@
 					return $this->getRepository()->findAll();
 				}
 			);
-			
+
 			$jsonUsers = $this->serializer->serialize($usersList, 'json', ['groups' => 'getUtilisateurs']);
 
 			return new JsonResponse($jsonUsers, Response::HTTP_OK, [], true);
@@ -141,7 +141,7 @@
 				$message = "Cet utilisateur n'existe pas";
 			} else {
 				$name = $user->getName();
-
+				$this->cachePool->invalidateTags(['getAllUsers', 'getAllUsersByCustomer']);
 				$this->em->remove($user);
 				$this->em->flush();
 

@@ -29,7 +29,13 @@
 	#[Route('api/liste/clients', name:'list_clients', methods:['GET'])]
 	public function getClientList(Request $request, ClientRepository $repository): JsonResponse
 	{
-		$customerList = $this->getRepository()->findAll();
+		$idCache = "getAllCustomers";
+
+		$customerList = $this->cachePool->get($idCache, function(ItemInterface $item) {
+			$item->tag('customersCache');
+			return $this->getRepository()->findAll();
+		});
+
 		$jsonCustomerList = $this->serializer->serialize($customerList, 'json', ['groups' => 'getClients']);
 		return new JsonResponse($jsonCustomerList, Response::HTTP_OK, [], true);
 	}
@@ -46,6 +52,7 @@
 	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
 	public function deleteClient(Client $client): JsonResponse
 	{
+		$this->cachePool->invalidateTags(['getAllCustomers']);
 		$this->em->remove($client);
 		$this->em->flush();
 
