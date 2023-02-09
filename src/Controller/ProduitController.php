@@ -47,19 +47,20 @@ class ProduitController extends AbstractController
     }
 
 		#[Route('api/liste/produits/by/client/{email}', name:'list-produits-by-client', methods:['GET'])]
-		public function getProductListByClient(Request $request): JsonResponse
+		public function getProductListByClient(Request $request, ProduitRepository $repository, string $email, ClientRepository $clientRepository): JsonResponse
 		{
-			$email = $request->attributes->get('email');
+			$idCache = "getAllproductsByCustomer";
 
-			/** @var ClientRepository $clientRepo */
-			$clientRepo = $this->em->getRepository(Client::class);
-			$client = $clientRepo->findBy(['email' => $email]);
+			$jsonProducts = $this->cachePool->get($idCache, function(ItemInterface $item, ) use ($repository, $clientRepository, $email) {
+				$item->tag('productByCustomerCache');
 
-			$products = $this->getRepository()->findBy(['client' => $client]);
+				$client = $clientRepository->findOneBy(['email' => $email]);
+				$products = $this->getRepository()->findBy(['client' => $client]);
 
-			$jsonProduct = $this->serializer->serialize($products, 'json', ['groups' => "getProduits"]);
+				return $this->serializer->serialize($products, 'json', ['groups' => "getProduits"]);
+			});
 
-			return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);
+			return new JsonResponse($jsonProducts, Response::HTTP_OK, [], true);
 		}
 
 		#[Route('/api/produits/{id}', name: 'details_produit', methods:['GET'] )]
@@ -87,7 +88,7 @@ class ProduitController extends AbstractController
 			);
 
 			if(!is_null($client)) {
-				$produit->setClient($client->getId());
+				$produit->setClient($client);
 			}
 
 			$this->em->persist($produit);
@@ -113,7 +114,6 @@ class ProduitController extends AbstractController
 		}
 
 		#[Route('/api/suppression/produits/{id}/by/{email}', name:'suppression_produits', methods:['DELETE'] )]
-		#[IsGranted('ROLE_ADMIN', message:'Vous n\’avez pas les droits requis pour supprimer un produit')]
 		public function deleteProduit(Request $request, int $id, string $email): JsonResponse
 		{
 			$message = '';
@@ -140,7 +140,6 @@ class ProduitController extends AbstractController
 		}
 
 		#[Route('api/update/produits/{id}/by/{email}', name: 'update_product', methods:['PUT'])]
-		#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour modifier un produit')]
 		public function updateProduit(Request $request, int $id, string $email): JsonResponse
 		{
 			$message = '';

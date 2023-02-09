@@ -27,7 +27,6 @@
 
 	// client
 	#[Route('api/liste/clients', name:'list_clients', methods:['GET'])]
-	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
 	public function getClientList(Request $request, ClientRepository $repository): JsonResponse
 	{
 		$customerList = $this->getRepository()->findAll();
@@ -36,18 +35,12 @@
 	}
 
 	#[Route('api/clients/{id}', name:'details_clients', methods:['GET'])]
-	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
 	public function getDetailsClient(Client $client): JsonResponse
 	{
 		$jsonCustomer = $this->serializer->serialize($client, 'json', ['group' => 'getClients']);
 
 		return new JsonResponse($jsonCustomer, Response::HTTP_OK, ['accept' => 'json'], true);
 	}
-
-	#[Route('api/clients/', name:'creation_client', methods:['POST'])]
-	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
-	public function postclient()
-	{}
 
 	#[Route('api/suppression/client/{id}', name:'delete_client', methods:['DELETE'])]
 	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]

@@ -13,6 +13,7 @@
 	use Symfony\Component\Routing\Annotation\Route;
 	use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 	use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+	use Symfony\Contracts\Cache\ItemInterface;
 
 
 	class UtilisateurController extends AbstractController
@@ -24,22 +25,37 @@
 		}
 
 		#[Route('api/liste/utilisateurs/by/{email}', name:'liste_utilisateurs_par_clients', methods:['GET'])]
-		public function getListUsersByCustomer(Request $request, string $email): JsonResponse
+		public function getListUsersByCustomer(Request $request, string $email,
+		                                       UtilisateurRepository $repository): JsonResponse
 		{
-			$client = $this->em->getRepository(Client::class)->findOneBy(['email' => $email]);
+			$idCache = "getAllUsersByCustomer";
+			$usersList = $this->cachePool->get($idCache,
+			function(ItemInterface $item) use ($repository, $email) {
+				$item->tag('usersByCustomerCache');
 
-			$users = $this->getRepository()->findBy(['codeClient' => $client->getCode()]);
+				$client = $this->em->getRepository(Client::class)->findOneBy(['email' => $email]);
+				$users = $this->getRepository()->findBy(['codeClient' => $client->getCode()]);
 
-			$jsonUsers = $this->serializer->serialize($users, 'json', ['groups' => 'getUtilisateurs']);
+				return $this->serializer->serialize($users, 'json',['groups' => 'getUtilisateurs']);
+			});
 
-			return new JsonResponse($jsonUsers, Response::HTTP_OK, [], true);
+			return new JsonResponse($usersList, Response::HTTP_OK, [], true);
 		}
 
 		#[Route('api/liste/utilisateurs', name:'liste_utilisateurs', methods:['GET'])]
 		public function getListUsers(Request $request): JsonResponse
 		{
-			$users = $this->getRepository()->findAll();
-			$jsonUsers = $this->serializer->serialize($users, 'json', ['groups' => 'getUtilisateurs']);
+
+			$idCache = "getAllUsers";
+			$usersList = $this->cachePool->get(
+				$idCache,
+				function(ItemInterface $item) {
+					$item->tag('usersCache');
+					return $this->getRepository()->findAll();
+				}
+			);
+			
+			$jsonUsers = $this->serializer->serialize($usersList, 'json', ['groups' => 'getUtilisateurs']);
 
 			return new JsonResponse($jsonUsers, Response::HTTP_OK, [], true);
 		}
