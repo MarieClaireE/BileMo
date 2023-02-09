@@ -4,38 +4,44 @@ namespace App\Entity;
 
 use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
-class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
+class Utilisateur
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["getClients", "getProduits", "getUtilisateurs"])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180, unique: true)]
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["getClients", "getProduits", "getUtilisateurs"])]
+    private ?string $name = null;
+
+    #[ORM\Column(length: 255, unique: true)]
+    #[Groups(["getClients", "getProduits", "getUtilisateurs"])]
     private ?string $email = null;
 
-    #[ORM\Column]
-    private array $roles = [];
-
-    /**
-     * @var string The hashed password
-     */
-    #[ORM\Column]
-    private ?string $password = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?int $codeclient = null;
-
-    #[ORM\Column(length: 150, nullable: true)]
-    private ?string $fullname = null;
+    #[ORM\Column(length: 10, nullable: true)]
+    #[Groups(["getClients", "getProduits", "getUtlisateurs"])]
+    private ?string $codeClient = null;
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(?string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
     }
 
     public function getEmail(): ?string
@@ -50,79 +56,14 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
+    public function getCodeClient(): ?string
     {
-        return (string) $this->email;
+        return $this->codeClient;
     }
 
-    /**
-     * @see UserInterface
-     */
-    public function getRoles(): array
+    public function setCodeClient(?string $codeClient): self
     {
-        $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
-
-        return array_unique($roles);
-    }
-
-    public function setRoles(array $roles): self
-    {
-        $this->roles = $roles;
-
-        return $this;
-    }
-
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
-
-    public function setPassword(string $password): self
-    {
-        $this->password = $password;
-
-        return $this;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials()
-    {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
-    }
-
-    public function getCodeclient(): ?int
-    {
-        return $this->codeclient;
-    }
-
-    public function setCodeclient(?int $codeclient): self
-    {
-        $this->codeclient = $codeclient;
-
-        return $this;
-    }
-
-    public function getFullname(): ?string
-    {
-        return $this->fullname;
-    }
-
-    public function setFullname(?string $fullname): self
-    {
-        $this->fullname = $fullname;
+        $this->codeClient = $codeClient;
 
         return $this;
     }

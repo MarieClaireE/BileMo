@@ -85,13 +85,10 @@ class ProduitController extends AbstractController
 				Produit::class,
 				'json'
 			);
-			$content = $request->toArray();
-			$clientId = $content['client'] ?? -1;
 
-			if($clientId === $client->getId()) {
-				$produit->setClient($clientRepo->find($clientId));
+			if(!is_null($client)) {
+				$produit->setClient($client->getId());
 			}
-
 
 			$this->em->persist($produit);
 			$this->em->flush();
