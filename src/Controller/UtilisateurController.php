@@ -18,6 +18,8 @@
 
 	class UtilisateurController extends AbstractController
 	{
+		const GETALLUSERSBYCUSTOMER = "getAllUsersByCustomer";
+		const GETALLUSERS = "getAllUsers";
 
 		public function getRepository(): UtilisateurRepository
 		{
@@ -28,27 +30,25 @@
 		public function getListUsersByCustomer(Request $request, string $email,
 		                                       UtilisateurRepository $repository): JsonResponse
 		{
-			$idCache = "getAllUsersByCustomer";
-			$usersList = $this->cachePool->get($idCache,
+			$usersList = $this->cachePool->get(self::GETALLUSERSBYCUSTOMER,
 			function(ItemInterface $item) use ($repository, $email) {
 				$item->tag('usersByCustomerCache');
-
-				$client = $this->em->getRepository(Client::class)->findOneBy(['email' => $email]);
-				$users = $this->getRepository()->findBy(['codeClient' => $client->getCode()]);
-
-				return $this->serializer->serialize($users, 'json',['groups' => 'getUtilisateurs']);
+				$client = $this->em->getRepository(Client::class)->findByEmail($email);
+				$users = $this->getRepository()->findByClient($client);
+				return $users;
 			});
 
-			return new JsonResponse($usersList, Response::HTTP_OK, [], true);
+			$jsonListUsers = $this->serializer->serialize($usersList, 'json', ['groups' => 'getUtilisateurs']);
+
+			return new JsonResponse($jsonListUsers, Response::HTTP_OK, [], true);
 		}
 
 		#[Route('api/liste/utilisateurs', name:'liste_utilisateurs', methods:['GET'])]
 		public function getListUsers(Request $request): JsonResponse
 		{
 
-			$idCache = "getAllUsers";
 			$usersList = $this->cachePool->get(
-				$idCache,
+				self::GETALLUSERS,
 				function(ItemInterface $item) {
 					$item->tag('usersCache');
 					return $this->getRepository()->findAll();
@@ -60,21 +60,18 @@
 			return new JsonResponse($jsonUsers, Response::HTTP_OK, [], true);
 		}
 
-		#[Route('api/details/utilisateurs/{id}/by/{email}', name:'details_utilisateurs', methods:['GET'])]
-		public function getDetailsUsers(Request $request, int $id, string $email): JsonResponse
+		#[Route('api/details/utilisateurs/{id}', name:'details_utilisateurs', methods:['GET'])]
+		public function getDetailsUsers(Request $request, int $id): JsonResponse
 		{
-			$client = $this->em->getRepository(Client::class)->findOneBy(['email' => $email]);
-			$user = $this->getRepository()->findOneBy(['id' => $id, 'codeClient' => $client->getCode()]);
-
+			$user = $this->getRepository()->find($id);
 			$jsonUser = $this->serializer->serialize($user, 'json', ['groups' => 'getUtilisateurs']);
-
 			return new JsonResponse($jsonUser, Response::HTTP_OK, ['accept' => 'json'], true);
 		}
 
 		#[Route('api/ajout/utilisateurs/by/{email}', name:'ajout_utilisateurs_by_client', methods:['POST'])]
 		public function postUsersByCustomer(Request $request, string $email): JsonResponse
 		{
-			$client = $this->em->getRepository(Client::class)->findOneBy(['email'=> $email]);
+			$client = $this->em->getRepository(Client::class)->findByEmail($email);
 
 			$user = $this->serializer->deserialize(
 				$request->getContent(),
@@ -83,7 +80,8 @@
 			);
 
 			if(!is_null($client)) {
-				$user->setCodeClient($client->getCode());
+					$user->setCodeClient($client->getCode());
+					$user->setClient($client);
 			}
 
 			$this->em->persist($user);
@@ -109,7 +107,7 @@
 		{
 			$message = '';
 
-			$user = $this->getRepository()->findOneBy(['email' => $email]);
+			$user = $this->getRepository()->findByEmail($email);
 
 			if(is_null($user)) {
 				$message = 'Cet utilisateur n\'existe pas';
@@ -135,13 +133,14 @@
 		{
 			$message = '';
 
-			$user = $this->getRepository()->findOneBy(['email' => $email]);
+			$user = $this->getRepository()->findByEmail($email);
+
 
 			if(is_null($user)) {
 				$message = "Cet utilisateur n'existe pas";
 			} else {
 				$name = $user->getName();
-				$this->cachePool->invalidateTags(['getAllUsers', 'getAllUsersByCustomer']);
+				$this->cachePool->invalidateTags(['usersCache', 'usersByCustomerCache']);
 				$this->em->remove($user);
 				$this->em->flush();
 

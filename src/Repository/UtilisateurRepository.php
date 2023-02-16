@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Client;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -38,6 +39,30 @@ class UtilisateurRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+	/**
+	 * @return Utilisateur[]
+	 */
+		public function findByClient(Client $client)
+		{
+			$qb = $this->createQueryBuilder('u')
+				->where('u.client =:clientId')
+				->setParameter('clientId', $client->getId());
+
+			return $qb->getQuery()->getResult();
+		}
+
+	/**
+	 * @param $email
+	 */
+		public function findByEmail($email): ?Utilisateur
+		{
+			return $this->createQueryBuilder('u')
+				->andWhere('u.email =:email')
+				->setParameter('email', $email)
+				->getQuery()
+				->getOneOrNullResult();
+		}
 
 //    /**
 //     * @return Utilisateur[] Returns an array of Utilisateur objects

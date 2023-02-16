@@ -27,6 +27,10 @@ class Utilisateur
     #[Groups(["getClients", "getProduits", "getUtlisateurs"])]
     private ?string $codeClient = null;
 
+    #[ORM\ManyToOne(inversedBy: 'utilisateurs')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Client $client = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -64,6 +68,18 @@ class Utilisateur
     public function setCodeClient(?string $codeClient): self
     {
         $this->codeClient = $codeClient;
+
+        return $this;
+    }
+
+    public function getClient(): ?Client
+    {
+        return $this->client;
+    }
+
+    public function setClient(?Client $client): self
+    {
+        $this->client = $client;
 
         return $this;
     }

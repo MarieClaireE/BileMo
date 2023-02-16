@@ -20,6 +20,8 @@
 {
 
 
+	const GETALLCUSTOMERS = "getAllCustomers";
+
 	public function getRepository(): ClientRepository
 	{
 		return $this->em->getRepository(Client::class);
@@ -29,34 +31,41 @@
 	#[Route('api/liste/clients', name:'list_clients', methods:['GET'])]
 	public function getClientList(Request $request, ClientRepository $repository): JsonResponse
 	{
-		$idCache = "getAllCustomers";
 
-		$customerList = $this->cachePool->get($idCache, function(ItemInterface $item) {
+		$customerList = $this->cachePool->get(self::GETALLCUSTOMERS, function(ItemInterface $item) {
 			$item->tag('customersCache');
 			return $this->getRepository()->findAll();
 		});
 
-		$jsonCustomerList = $this->serializer->serialize($customerList, 'json', ['groups' => 'getClients']);
+		$jsonCustomerList = $this->serializer->serialize($customerList, 'json', ['groups' => 'getClients', 'getProduits', 'getUtilisateurs']);
 		return new JsonResponse($jsonCustomerList, Response::HTTP_OK, [], true);
 	}
 
 	#[Route('api/clients/{id}', name:'details_clients', methods:['GET'])]
 	public function getDetailsClient(Client $client): JsonResponse
 	{
-		$jsonCustomer = $this->serializer->serialize($client, 'json', ['group' => 'getClients']);
+		$jsonCustomer = $this->serializer->serialize($client, 'json', ['groups' => 'getClients', 'getProduits', 'getUtilisateurs']);
 
 		return new JsonResponse($jsonCustomer, Response::HTTP_OK, ['accept' => 'json'], true);
 	}
 
 	#[Route('api/suppression/client/{id}', name:'delete_client', methods:['DELETE'])]
 	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
-	public function deleteClient(Client $client): JsonResponse
+	public function deleteClient(int $id): JsonResponse
 	{
-		$this->cachePool->invalidateTags(['getAllCustomers']);
-		$this->em->remove($client);
-		$this->em->flush();
+		$message = '';
+		$client = $this->getRepository()->find($id);
 
-		return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+		if(is_null($client)) {
+			$message = 'Ce client n\'existe pas';
+		} else {
+			$this->cachePool->invalidateTags(['customersCache']);
+			$this->em->remove($client);
+			$this->em->flush();
+			$message = 'Le client ' .$client->getFullname(). 'a été supprimé ! ';
+		}
+
+		return new JsonResponse($message, Response::HTTP_OK);
 	}
 
 }
