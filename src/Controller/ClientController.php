@@ -20,15 +20,14 @@
 {
 
 
-	const GETALLCUSTOMERS = "getAllCustomers";
+	public const GETALLCUSTOMERS = "getAllCustomers";
 
 	public function getRepository(): ClientRepository
 	{
 		return $this->em->getRepository(Client::class);
 	}
 
-	// client
-	#[Route('api/liste/clients', name:'list_clients', methods:['GET'])]
+	#[Route('api/clients/', name:'list_clients', methods:['GET'])]
 	public function getClientList(Request $request, ClientRepository $repository): JsonResponse
 	{
 
@@ -49,23 +48,23 @@
 		return new JsonResponse($jsonCustomer, Response::HTTP_OK, ['accept' => 'json'], true);
 	}
 
-	#[Route('api/suppression/client/{id}', name:'delete_client', methods:['DELETE'])]
+	#[Route('api/clients/{id}', name:'delete_client', methods:['DELETE'])]
 	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
 	public function deleteClient(int $id): JsonResponse
 	{
-		$message = '';
+		$response = '';
 		$client = $this->getRepository()->find($id);
 
 		if(is_null($client)) {
-			$message = 'Ce client n\'existe pas';
+			$response = new JsonResponse(['error' => 'Une erreur est survenue lors de la suppression'], Response::HTTP_NOT_FOUND);
 		} else {
 			$this->cachePool->invalidateTags(['customersCache']);
 			$this->em->remove($client);
 			$this->em->flush();
-			$message = 'Le client ' .$client->getFullname(). 'a été supprimé ! ';
+			$response = new JsonResponse(['success' => 'Client supprimé avec succès'], Response::HTTP_OK);
 		}
 
-		return new JsonResponse($message, Response::HTTP_OK);
+		return $response;
 	}
 
 }

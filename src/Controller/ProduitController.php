@@ -22,8 +22,8 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class ProduitController extends AbstractController
 {
 
-		const GETALLPRODUCTS = "getAllProducts";
-		const GETALLPRODUCTSBYCUSTOMER = "getAllProductsBycustomer";
+		public const GETALLPRODUCTS = "getAllProducts";
+		public const GETALLPRODUCTSBYCUSTOMER = "getAllProductsBycustomer";
 
 		private $repository;
 
@@ -32,7 +32,7 @@ class ProduitController extends AbstractController
 			return $this->em->getRepository(Produit::class);
 		}
 
-    #[Route('/api/liste/produits', name: 'list_produits', methods:['GET'])]
+    #[Route('/api/produits', name: 'list_produits', methods:['GET'])]
     public function getProductlist(Request $request, ProduitRepository $repository): JsonResponse
     {
 			$productlist = $this->cachePool->get(self::GETALLPRODUCTS, function(ItemInterface $item) use ($repository) {
@@ -46,7 +46,7 @@ class ProduitController extends AbstractController
 			);
     }
 
-		#[Route('api/liste/produits/by/{emailClient}', name:'list-produits-by-client', methods:['GET'])]
+		#[Route('api/produits/by/{emailClient}', name:'list-produits-by-client', methods:['GET'])]
 		public function getProductListByClient(Request $request, ProduitRepository $repository, string $emailClient, ClientRepository $clientRepository): JsonResponse
 		{
 			$products = $this->cachePool->get(self::GETALLPRODUCTSBYCUSTOMER, function(ItemInterface $item, ) use ($repository, $clientRepository, $emailClient) {
@@ -109,35 +109,32 @@ class ProduitController extends AbstractController
 				true);
 		}
 
-		#[Route('/api/suppression/produits/{id}', name:'suppression_produits', methods:['DELETE'] )]
+		#[Route('/api/produits/{id}', name:'suppression_produits', methods:['DELETE'] )]
 		public function deleteProduit(Request $request, int $id): JsonResponse
 		{
-			$message = '';
-
+			$response = '';
 			$produit = $this->getRepository()->find($id);
 
 			if($produit === null) {
-				$message = 'Vous ne pouvez pas supprimer ce produit';
+				$response = new JsonResponse(['error' => 'Une erreur est survenue lors de la suppression du produit'], Response::HTTP_NOT_FOUND);
 			} else {
 				$this->cachePool->invalidateTags(['productCache', 'productByCustomerCache']);
 				$this->em->remove($produit);
 				$this->em->flush();
-				$message = 'Produit \'' .$produit->getName(). '\' a été supprimé';
+				$response = new JsonResponse(['success' => 'Produit supprimé avec succès']);
 			}
-
-
-			return new JsonResponse($message, Response::HTTP_OK);
+			return $response;
 		}
 
-		#[Route('api/update/produits/{id}', name: 'update_product', methods:['PUT'])]
+		#[Route('api/produits/{id}', name: 'update_product', methods:['PUT'])]
 		public function updateProduit(Request $request, int $id): JsonResponse
 		{
-			$message = '';
+			$response = '';
 
 			$produit = $this->getRepository()->find($id);
 
 			if($produit ===  null) {
-				$message = 'Aucun produit trouvé';
+				$response = new JsonResponse(['error' => 'Une erreur est survenue lors la modification du produit'], Response::HTTP_NOT_FOUND);
 			} else {
 				$updateProduct = $this->serializer->deserialize(
 					$request->getContent(),
@@ -148,11 +145,10 @@ class ProduitController extends AbstractController
 				$this->em->persist($updateProduct);
 				$this->em->flush();
 
-				$message = 'Produit \'' .$produit->getName(). '\' mis à jour';
+				$response = new JsonResponse(['success' => 'Produit modifié avec succès']);
 			}
 
-
-			return new JsonResponse($message, JsonResponse::HTTP_OK);
+			return $response;
 		}
 
 }
