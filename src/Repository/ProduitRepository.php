@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Client;
 use App\Entity\Produit;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -39,6 +40,14 @@ class ProduitRepository extends ServiceEntityRepository
         }
     }
 
+		public function findByCustomer(Client $client)
+		{
+			return $this->createQueryBuilder('p')
+				->andWhere('p.client = :clientId')
+				->setParameter('clientId', $client->getId())
+				->getQuery()
+				->getResult();
+		}
 //    /**
 //     * @return Produit[] Returns an array of Produit objects
 //     */

@@ -16,23 +16,16 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getClients", "getProduits"])]
+    #[Groups(["getClients", "getProduits", "getUtilisateurs"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
-    #[Groups(["getClients", "getProduits"])]
+    #[Groups(["getClients", "getProduits", "getUtilisateurs"])]
     private ?string $email = null;
 
     #[ORM\Column]
-    #[Groups(["getClients", "getProduits"])]
+    #[Groups(["getClients", "getProduits", "getUtilisateurs"])]
     private array $roles = [];
-
-		#[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'users')]
-		#[Groups(["getClients", "getProduits"])]
-		private ?self $parent = null;
-
-		#[ORM\OneToMany(mappedBy: 'parent', targetEntity: self::class)]
-		private Collection $users;
 
     /**
      * @var string The hashed password
@@ -40,14 +33,17 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\Column]
-    private ?int $code = null;
+    #[ORM\Column(length: 10, nullable:true)]
+    private ?string $code = null;
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $fullname = null;
 
     #[ORM\OneToMany(mappedBy: 'client', targetEntity: Produit::class)]
     private Collection $produits;
+
+    #[ORM\OneToMany(mappedBy: 'client', targetEntity: Utilisateur::class)]
+    private Collection $utilisateurs;
 
     public function __construct()
     {
@@ -134,12 +130,12 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
 			return $this->getUserIdentifier();
 		}
 
-  public function getCode(): ?int
+  public function getCode(): ?string
   {
       return $this->code;
   }
 
-  public function setCode(int $code): self
+  public function setCode(string $code): self
   {
       $this->code = $code;
 
@@ -157,48 +153,6 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
 
       return $this;
   }
-
-	public function getParent(): ?self
-               	{
-               		return $this->parent;
-               	}
-
-	public function setParent(?self $parent): self
-               	{
-               		$this->parent = $parent;
-               
-               		return $this;
-               	}
-
-	/**
-	 * @return Collection<int, self>
-	 */
-	public function getUsers(): Collection
-               	{
-               		return $this->users;
-               	}
-
-	public function addUser(self $user): self
-               	{
-               		if (!$this->users->contains($user)) {
-               			$this->users[] = $user;
-               			$user->setParent($this);
-               		}
-               
-               		return $this;
-               	}
-
-	public function removeUser(self $user): self
-               	{
-               		if ($this->users->removeElement($user)) {
-               			// set the owning side to null (unless already changed)
-               			if ($user->getParent() === $this) {
-               				$user->setParent(null);
-               			}
-               		}
-               
-               		return $this;
-               	}
 
     /**
      * @return Collection<int, Produit>
@@ -224,6 +178,36 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($produit->getClient() === $this) {
                 $produit->setClient(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Utilisateur>
+     */
+    public function getUtilisateurs(): Collection
+    {
+        return $this->utilisateurs;
+    }
+
+    public function addUtilisateur(Utilisateur $utilisateur): self
+    {
+        if (!$this->utilisateurs->contains($utilisateur)) {
+            $this->utilisateurs->add($utilisateur);
+            $utilisateur->setClient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUtilisateur(Utilisateur $utilisateur): self
+    {
+        if ($this->utilisateurs->removeElement($utilisateur)) {
+            // set the owning side to null (unless already changed)
+            if ($utilisateur->getClient() === $this) {
+                $utilisateur->setClient(null);
             }
         }
 

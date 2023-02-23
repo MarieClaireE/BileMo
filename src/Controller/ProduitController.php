@@ -22,6 +22,9 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class ProduitController extends AbstractController
 {
 
+		const GETALLPRODUCTS = "getAllProducts";
+		const GETALLPRODUCTSBYCUSTOMER = "getAllProductsBycustomer";
+
 		private $repository;
 
 		public function getRepository(): ProduitRepository
@@ -32,69 +35,34 @@ class ProduitController extends AbstractController
     #[Route('/api/liste/produits', name: 'list_produits', methods:['GET'])]
     public function getProductlist(Request $request, ProduitRepository $repository): JsonResponse
     {
-			$idCache = "getAllProducts";
-			$productlist = $this->cachePool->get($idCache, function(ItemInterface $item) use ($repository) {
+			$productlist = $this->cachePool->get(self::GETALLPRODUCTS, function(ItemInterface $item) use ($repository) {
 				$item->tag('productCache');
 				return $this->getRepository()->findAll();
-			}
-			);
-
-			$jsonProductlist = $this->serializer->serialize($productlist, 'json');
+			});
+			$jsonProductlist = $this->serializer->serialize($productlist, 'json', ['groups' => 'getProduits']);
 
 			return new JsonResponse(
 				$jsonProductlist, Response::HTTP_OK, [], true
 			);
     }
 
-		#[Route('api/liste/produits/by/client/{email}', name:'list-produits-by-client', methods:['GET'])]
-		public function getProductListByClient(Request $request): JsonResponse
+		#[Route('api/liste/produits/by/{emailClient}', name:'list-produits-by-client', methods:['GET'])]
+		public function getProductListByClient(Request $request, ProduitRepository $repository, string $emailClient, ClientRepository $clientRepository): JsonResponse
 		{
-			$email = $request->attributes->get('email');
+			$products = $this->cachePool->get(self::GETALLPRODUCTSBYCUSTOMER, function(ItemInterface $item, ) use ($repository, $clientRepository, $emailClient) {
+				$item->tag('productByCustomerCache');
+				$client = $clientRepository->findByEmail($emailClient);
+				return $this->getRepository()->findByCustomer($client);
+			});
 
-			/** @var ClientRepository $clientRepo */
-			$clientRepo = $this->em->getRepository(Client::class);
-			$client = $clientRepo->findBy(['email' => $email]);
-
-			$products = $this->getRepository()->findBy(['client' => $client]);
-
-			$jsonProduct = $this->serializer->serialize($products, 'json', ['groups' => "getProduits"]);
-
-			return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);
-		}
-
-		#[Route('api/liste/produits/by/utilisateur/{email}', name:'liste_produits_by_utilisateur', methods:['GET'])]
-		public function getListProductsByUsers(Request $request, string $email):JsonResponse
-		{
-			$produits = [];
-			/**
-			 * @var ClientRepository $clientRepo
-			 */
-			$clientRepo = $this->em->getRepository(Client::class);
-			$user = $clientRepo->findOneBy(['email'=> $email]);
-
-			// récupérer le client lié à l'utilisateur
-			$client = $clientRepo->findOneBy(['id' => $user->getParent()->getId()]);
-
-			// récupérer la liste des produits déposés par le client
-			$produitsCustomer = $this->getRepository()->findBy(['client' => $client->getId()]);
-
-			// récupérer la liste des produits déposés par l'utilisateur
-			$produitsUser = $this->getRepository()->findBy(['client' => $user->getId()]);
-
-			$produits = [
-				$produitsCustomer,
-				$produitsUser
-			];
-
-			$jsonProduct = $this->serializer->serialize($produits, 'json', ['groups' => "getProduits"]);
-
-			return new JsonResponse($jsonProduct, Response::HTTP_OK, [], 'json');
+			$jsonProducts = $this->serializer->serialize($products, 'json', ['groups' => 'getProduits']);
+			return new JsonResponse($jsonProducts, Response::HTTP_OK, [], true);
 		}
 
 		#[Route('/api/produits/{id}', name: 'details_produit', methods:['GET'] )]
 		public function getDetailProduit(Produit $produit): JsonResponse
 		{
-			$jsonProduit = $this->serializer->serialize($produit, 'json');
+			$jsonProduit = $this->serializer->serialize($produit, 'json', ['groups' => 'getProduits']);
 
 			return new JsonResponse($jsonProduit,Response::HTTP_OK, ['accept' => 'json'],true);
 		}
@@ -106,7 +74,7 @@ class ProduitController extends AbstractController
 			 * @var ClientRepository $clientRepo
 			 */
 			$clientRepo = $this->em->getRepository(Client::class);
-			$client = $clientRepo->findOneBy(['email' => $email]);
+			$client = $clientRepo->findByEmail($email);
 
 
 			$produit = $this->serializer->deserialize(
@@ -114,13 +82,10 @@ class ProduitController extends AbstractController
 				Produit::class,
 				'json'
 			);
-			$content = $request->toArray();
-			$clientId = $content['client'] ?? -1;
 
-			if($clientId === $client->getId()) {
-				$produit->setClient($clientRepo->find($clientId));
+			if(!is_null($client)) {
+				$produit->setClient($client);
 			}
-
 
 			$this->em->persist($produit);
 			$this->em->flush();
@@ -144,24 +109,17 @@ class ProduitController extends AbstractController
 				true);
 		}
 
-		#[Route('/api/suppression/produits/{id}/by/{email}', name:'suppression_produits', methods:['DELETE'] )]
-		#[IsGranted('ROLE_ADMIN', message:'Vous n\’avez pas les droits requis pour supprimer un produit')]
-		public function deleteProduit(Request $request, int $id, string $email): JsonResponse
+		#[Route('/api/suppression/produits/{id}', name:'suppression_produits', methods:['DELETE'] )]
+		public function deleteProduit(Request $request, int $id): JsonResponse
 		{
 			$message = '';
-			$email = $request->attributes->get('email');
 
-			/**
-			 * @var ClientRepository $clientRepo
-			 */
-			$clientRepo = $this->em->getRepository(Client::class);
-			$client = $clientRepo->findBy(['email' => $email]);
-
-			$produit = $this->getRepository()->findOneBy(['id' => $id, 'client' => $client]);
+			$produit = $this->getRepository()->find($id);
 
 			if($produit === null) {
 				$message = 'Vous ne pouvez pas supprimer ce produit';
 			} else {
+				$this->cachePool->invalidateTags(['productCache', 'productByCustomerCache']);
 				$this->em->remove($produit);
 				$this->em->flush();
 				$message = 'Produit \'' .$produit->getName(). '\' a été supprimé';
@@ -171,19 +129,12 @@ class ProduitController extends AbstractController
 			return new JsonResponse($message, Response::HTTP_OK);
 		}
 
-		#[Route('api/update/produits/{id}/by/{email}', name: 'update_product', methods:['PUT'])]
-		#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour modifier un produit')]
-		public function updateProduit(Request $request, int $id, string $email): JsonResponse
+		#[Route('api/update/produits/{id}', name: 'update_product', methods:['PUT'])]
+		public function updateProduit(Request $request, int $id): JsonResponse
 		{
 			$message = '';
 
-			/**
-			 * @var ClientRepository $clientRepo
-			 */
-			$clientRepo = $this->em->getRepository(Client::class);
-			$client = $clientRepo->findBy(['email' => $email]);
-
-			$produit = $this->getRepository()->findOneBy(['id' => $id, 'client' => $client]);
+			$produit = $this->getRepository()->find($id);
 
 			if($produit ===  null) {
 				$message = 'Aucun produit trouvé';
