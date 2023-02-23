@@ -22,8 +22,8 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class ProduitController extends AbstractController
 {
 
-		public const GETALLPRODUCTS = "getAllProducts";
-		public const GETALLPRODUCTSBYCUSTOMER = "getAllProductsBycustomer";
+		public const CACHE_KEY_GETALLPRODUCTS = "getAllProducts";
+		public const CACHE_KEY_GETALLPRODUCTSBYCUSTOMER = "getAllProductsBycustomer";
 
 		private $repository;
 
@@ -35,7 +35,7 @@ class ProduitController extends AbstractController
     #[Route('/api/produits', name: 'list_produits', methods:['GET'])]
     public function getProductlist(Request $request, ProduitRepository $repository): JsonResponse
     {
-			$productlist = $this->cachePool->get(self::GETALLPRODUCTS, function(ItemInterface $item) use ($repository) {
+			$productlist = $this->cachePool->get(self::CACHE_KEY_GETALLPRODUCTS, function(ItemInterface $item) use ($repository) {
 				$item->tag('productCache');
 				return $this->getRepository()->findAll();
 			});
@@ -49,7 +49,7 @@ class ProduitController extends AbstractController
 		#[Route('api/produits/by/{emailClient}', name:'list-produits-by-client', methods:['GET'])]
 		public function getProductListByClient(Request $request, ProduitRepository $repository, string $emailClient, ClientRepository $clientRepository): JsonResponse
 		{
-			$products = $this->cachePool->get(self::GETALLPRODUCTSBYCUSTOMER, function(ItemInterface $item, ) use ($repository, $clientRepository, $emailClient) {
+			$products = $this->cachePool->get(self::CACHE_KEY_GETALLPRODUCTSBYCUSTOMER, function(ItemInterface $item, ) use ($repository, $clientRepository, $emailClient) {
 				$item->tag('productByCustomerCache');
 				$client = $clientRepository->findByEmail($emailClient);
 				return $this->getRepository()->findByCustomer($client);

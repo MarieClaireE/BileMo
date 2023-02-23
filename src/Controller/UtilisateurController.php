@@ -18,8 +18,8 @@
 
 	class UtilisateurController extends AbstractController
 	{
-		public const GETALLUSERSBYCUSTOMER = "getAllUsersByCustomer";
-		public const GETALLUSERS = "getAllUsers";
+		public const CACHE_KEY_GETALLUSERSBYCUSTOMER = "getAllUsersByCustomer";
+		public const CACHE_KEY_GETALLUSERS = "getAllUsers";
 
 		public function getRepository(): UtilisateurRepository
 		{
@@ -30,7 +30,7 @@
 		public function getListUsersByCustomer(Request $request, string $email,
 		                                       UtilisateurRepository $repository): JsonResponse
 		{
-			$usersList = $this->cachePool->get(self::GETALLUSERSBYCUSTOMER,
+			$usersList = $this->cachePool->get(self::CACHE_KEY_GETALLUSERSBYCUSTOMER,
 			function(ItemInterface $item) use ($repository, $email) {
 				$item->tag('usersByCustomerCache');
 				$client = $this->em->getRepository(Client::class)->findByEmail($email);
@@ -48,7 +48,7 @@
 		{
 
 			$usersList = $this->cachePool->get(
-				self::GETALLUSERS,
+				self::CACHE_KEY_GETALLUSERS,
 				function(ItemInterface $item) {
 					$item->tag('usersCache');
 					return $this->getRepository()->findAll();
