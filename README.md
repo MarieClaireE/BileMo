@@ -11,4 +11,9 @@ ne sont accessible qu'aux utilisateurs ayant un rôle ['ROLE_ADMIN'].
 # Installation du projet 
 1. Cloner ou télécharger le projet :
    `git clone https://github.com/MarieClaireE/BileMo.git`
-2. 
+2. Configurez vos variables d'environnement (base de données...) en racine du projet
+dans le fichier `.env.local` qui sera une copie du fichier `.env`.
+3. Faites un `composer install`
+4. Si vous n'avez pas encore créer votre base de données, après vous 
+êtes placé dans le répertoire du projet, faites un `php bin/console doctrine:database:create`.
+Ensuite créez les différentes tables du projet en faisant un `php bin/console doctrine:migration:migate`
