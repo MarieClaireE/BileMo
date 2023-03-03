@@ -110,6 +110,7 @@ class ProduitController extends AbstractController
 		}
 
 		#[Route('/api/suppression/produits/{id}', name:'suppression_produits', methods:['DELETE'] )]
+		#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour supprimer un produit')]
 		public function deleteProduit(Request $request, int $id): JsonResponse
 		{
 			$message = '';
@@ -130,6 +131,7 @@ class ProduitController extends AbstractController
 		}
 
 		#[Route('api/update/produits/{id}', name: 'update_product', methods:['PUT'])]
+		#[IsGranted('ROLE_ADMIN', message:'Vous n\’avez pas les droits requis pour modifier un produit')]
 		public function updateProduit(Request $request, int $id): JsonResponse
 		{
 			$message = '';

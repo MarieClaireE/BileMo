@@ -6,6 +6,7 @@
 	use App\Entity\Utilisateur;
 	use App\Repository\ClientRepository;
 	use App\Repository\UtilisateurRepository;
+	use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 	use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 	use Symfony\Component\HttpFoundation\JsonResponse;
 	use Symfony\Component\HttpFoundation\Request;
@@ -103,6 +104,7 @@
 		}
 
 		#[Route('api/update/utilisateurs/{email}', name:'update_utilisateurs', methods:['PUT'])]
+		#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour modifier un utilisateur')]
 		public function putUpdateUsers(Request $request, string $email ): JsonResponse
 		{
 			$message = '';
@@ -129,6 +131,7 @@
 		}
 
 		#[Route('api/suppression/utilisateurs/{email}', name:'delete_utilisateurs', methods:['DELETE'])]
+		#[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits requis pour supprimer un utilisateur')]
 		public function deleteUsers(Request $request, string $email): JsonResponse
 		{
 			$message = '';

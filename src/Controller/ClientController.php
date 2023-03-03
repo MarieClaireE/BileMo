@@ -50,7 +50,7 @@
 	}
 
 	#[Route('api/suppression/client/{id}', name:'delete_client', methods:['DELETE'])]
-	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
+	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour supprimer un client')]
 	public function deleteClient(int $id): JsonResponse
 	{
 		$message = '';
