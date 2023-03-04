@@ -30,7 +30,7 @@
 	#[Route('api/clients/', name:'list_clients', methods:['GET'])]
 	public function getClientList(Request $request, ClientRepository $repository): JsonResponse
 	{
-		$customerList = $this->cachePool->get(self::CACHE_KEY_GETALLCUSTOMERS, function(ItemInterface $item) {
+		$customerList = $this->cachePool->get(self::CACHE_KEY_GETALLCUSTOMERS, function (ItemInterface $item) {
 			$item->tag('customersCache');
 			return $this->getRepository()->findAll();
 		});
@@ -47,12 +47,12 @@
 		return new JsonResponse($jsonCustomer, Response::HTTP_OK, ['accept' => 'json'], true);
 	}
 
-	#[Route('api/clients/{id}', name:'delete_client', methods:['DELETE'])]
+	#[Route('api/clients/', name:'delete_client', methods:['DELETE'])]
 	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
-	public function deleteClient(int $id): JsonResponse
+	public function deleteClient(): JsonResponse
 	{
 		$response = '';
-		$client = $this->getRepository()->find($id);
+		$client = $this->getUser();
 
 		if(is_null($client)) {
 			$response = new JsonResponse(['error' => 'Une erreur est survenue lors de la suppression'], Response::HTTP_NOT_FOUND);
