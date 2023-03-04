@@ -32,45 +32,43 @@
 		 * @throws InvalidArgumentException
 		 */
 		#[Route('api/clients/', name:'list_clients', methods:['GET'])]
-	public function getClientList(Request $request, ClientRepository $repository): JsonResponse
-	{
-		$customerList = $this->cachePool->get (self::CACHE_KEY_GETALLCUSTOMERS, function (ItemInterface $item) {
-			$item->tag ('customersCache');
-			return $this->getRepository ()->findAll();
-		});
+		public function getClientList(Request $request, ClientRepository $repository): JsonResponse
+		{
+			$customerList = $this->cachePool->get (self::CACHE_KEY_GETALLCUSTOMERS, function (ItemInterface $item) {
+				$item->tag ('customersCache');
+				return $this->getRepository ()->findAll();
+			});
 
-		$jsonCustomerList = $this->serializer->serialize($customerList, 'json', ['groups' => 'getClients', 'getProduits', 'getUtilisateurs']);
-		return new JsonResponse($jsonCustomerList, Response::HTTP_OK, [], true);
-	}
+			$jsonCustomerList = $this->serializer->serialize($customerList, 'json', ['groups' => 'getClients', 'getProduits', 'getUtilisateurs']);
+			return new JsonResponse($jsonCustomerList, Response::HTTP_OK, [], true);
+		}
 
-	#[Route('api/clients/{id}', name:'details_clients', methods:['GET'])]
-	public function getDetailsClient(Client $client): JsonResponse
-	{
-		$jsonCustomer = $this->serializer->serialize($client, 'json', ['groups' => 'getClients', 'getProduits', 'getUtilisateurs']);
+		#[Route('api/clients/{id}', name:'details_clients', methods:['GET'])]
+		public function getDetailsClient(Client $client): JsonResponse
+		{
+			$jsonCustomer = $this->serializer->serialize($client, 'json', ['groups' => 'getClients', 'getProduits', 'getUtilisateurs']);
 
-		return new JsonResponse($jsonCustomer, Response::HTTP_OK, ['accept' => 'json'], true);
-	}
+			return new JsonResponse($jsonCustomer, Response::HTTP_OK, ['accept' => 'json'], true);
+		}
 
 		/**
 		 * @throws InvalidArgumentException
 		 */
 		#[Route('api/clients/', name:'delete_client', methods:['DELETE'])]
-	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
-	public function deleteClient(): JsonResponse
-	{
-		$response = '';
-		$client = $this->getUser();
+		#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
+		public function deleteClient(): JsonResponse
+		{
+			$response = '';
+			$client=$this->getUser();
+			if(is_null($client)) {
+				$response = new JsonResponse(['error'=>'Une erreur est survenue lors de la suppression'], Response::HTTP_NOT_FOUND);
+			} else {
+				$this->cachePool->invalidateTags(['customersCache']);
+				$this->em->remove($client);
+				$this->em->flush();
+				$response = new JsonResponse(['success'=>'Client supprimé avec succès'], Response::HTTP_OK);
+			}
 
-		if(is_null($client)) {
-			$response = new JsonResponse(['error' => 'Une erreur est survenue lors de la suppression'], Response::HTTP_NOT_FOUND);
-		} else {
-			$this->cachePool->invalidateTags(['customersCache']);
-			$this->em->remove($client);
-			$this->em->flush();
-			$response = new JsonResponse(['success' => 'Client supprimé avec succès'], Response::HTTP_OK);
+			return $response;
 		}
-
-		return $response;
-	}
-
 }
