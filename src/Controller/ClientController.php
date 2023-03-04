@@ -4,6 +4,7 @@
 
 	use App\Entity\Client;
 	use App\Repository\ClientRepository;
+	use Psr\Cache\InvalidArgumentException;
 	use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 	use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 	use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,12 +28,15 @@
 		return $this->em->getRepository(Client::class);
 	}
 
-	#[Route('api/clients/', name:'list_clients', methods:['GET'])]
+		/**
+		 * @throws InvalidArgumentException
+		 */
+		#[Route('api/clients/', name:'list_clients', methods:['GET'])]
 	public function getClientList(Request $request, ClientRepository $repository): JsonResponse
 	{
-		$customerList = $this->cachePool->get(self::CACHE_KEY_GETALLCUSTOMERS, function (ItemInterface $item) {
-			$item->tag('customersCache');
-			return $this->getRepository()->findAll();
+		$customerList = $this->cachePool->get (self::CACHE_KEY_GETALLCUSTOMERS, function (ItemInterface $item) {
+			$item->tag ('customersCache');
+			return $this->getRepository ()->findAll();
 		});
 
 		$jsonCustomerList = $this->serializer->serialize($customerList, 'json', ['groups' => 'getClients', 'getProduits', 'getUtilisateurs']);
@@ -47,7 +51,10 @@
 		return new JsonResponse($jsonCustomer, Response::HTTP_OK, ['accept' => 'json'], true);
 	}
 
-	#[Route('api/clients/', name:'delete_client', methods:['DELETE'])]
+		/**
+		 * @throws InvalidArgumentException
+		 */
+		#[Route('api/clients/', name:'delete_client', methods:['DELETE'])]
 	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
 	public function deleteClient(): JsonResponse
 	{
