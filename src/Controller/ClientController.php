@@ -20,16 +20,13 @@
 	class ClientController extends AbstractController
 {
 	   public const CACHE_KEY_GETALLCUSTOMERS ="getAllCustomers";
-	public function getRepository (): ClientRepository
+	public function getRepository(): ClientRepository
 	{
 		return $this->em->getRepository(Client::class);
 	}
 
-	/**
-	 * @throws InvalidArgumentException
-	 */
 	#[Route('api/clients/', name:'list_clients', methods:['GET'])]
-	public function getClientList (): JsonResponse
+	public function getClientList(): JsonResponse
 	{
 		$customerList = $this->cachePool->get (self::CACHE_KEY_GETALLCUSTOMERS, function (ItemInterface $item) {
 			$item->tag ('customersCache');
@@ -41,19 +38,16 @@
 	}
 
 	#[Route('api/clients/{id}', name:'details_clients', methods:['GET'])]
-	public function getDetailsClient (Client $client): JsonResponse
+	public function getDetailsClient(Client $client): JsonResponse
 	{
 		$jsonCustomer = $this->serializer->serialize($client, 'json', ['groups' => 'getClients', 'getProduits', 'getUtilisateurs']);
 
 		return new JsonResponse($jsonCustomer, Response::HTTP_OK, ['accept' => 'json'], true);
 	}
 
-	/**
-	 * @throws InvalidArgumentException
-	 */
 	#[Route('api/clients/', name:'delete_client', methods:['DELETE'])]
 	#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
-	public function deleteClient (): JsonResponse
+	public function deleteClient(): JsonResponse
 	{
 		$response = '';
 		$client=$this->getUser();
