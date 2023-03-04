@@ -30,8 +30,7 @@
 	#[Route('api/clients/', name:'list_clients', methods:['GET'])]
 	public function getClientList(Request $request, ClientRepository $repository): JsonResponse
 	{
-
-		$customerList = $this->cachePool->get(self::GETALLCUSTOMERS, function(ItemInterface $item) {
+		$customerList = $this->cachePool->get(self::CACHE_KEY_GETALLCUSTOMERS, function(ItemInterface $item) {
 			$item->tag('customersCache');
 			return $this->getRepository()->findAll();
 		});
