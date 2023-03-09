@@ -16,7 +16,7 @@
 	use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 	use Symfony\Contracts\Cache\ItemInterface;
 
-	class ClientController extends AbstractController
+class ClientController extends AbstractController
 	{
 	   public const CACHE_KEY_GETALLCUSTOMERS = "getAllCustomers";
 
