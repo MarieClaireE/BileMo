@@ -6,6 +6,7 @@
 	use App\Entity\Utilisateur;
 	use App\Repository\ClientRepository;
 	use App\Repository\UtilisateurRepository;
+	use Psr\Cache\InvalidArgumentException;
 	use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 	use Symfony\Component\HttpFoundation\JsonResponse;
 	use Symfony\Component\HttpFoundation\Request;
@@ -26,6 +27,10 @@
 			return $this->em->getRepository(Utilisateur::class);
 		}
 
+		/**
+		 * @return JsonResponse
+		 * @throws InvalidArgumentException
+		 */
 		#[Route('api/utilisateurs/', name:'liste_utilisateurs_par_clients', methods:['GET'])]
 		public function getListUsersByCustomer(UtilisateurRepository $repository): JsonResponse
 		{

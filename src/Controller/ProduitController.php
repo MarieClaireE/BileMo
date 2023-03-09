@@ -7,6 +7,7 @@ use App\Entity\Produit;
 use App\Repository\ClientRepository;
 use App\Repository\ProduitRepository;
 use PHPUnit\Util\Json;
+use Psr\Cache\InvalidArgumentException;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,15 +26,13 @@ class ProduitController extends AbstractController
 		public const CACHE_KEY_GETALLPRODUCTS = "getAllProducts";
 		public const CACHE_KEY_GETALLPRODUCTSBYCUSTOMER = "getAllProductsBycustomer";
 
-		private $repository;
-
 		public function getRepository(): ProduitRepository
 		{
 			return $this->em->getRepository(Produit::class);
 		}
 
     #[Route('/api/produits', name: 'list_produits', methods:['GET'])]
-    public function getProductlist(Request $request, ProduitRepository $repository): JsonResponse
+    public function getProductlist(ProduitRepository $repository): JsonResponse
     {
 			$productlist = $this->cachePool->get(self::CACHE_KEY_GETALLPRODUCTS, function(ItemInterface $item) use ($repository) {
 				$item->tag('productCache');
@@ -47,7 +46,7 @@ class ProduitController extends AbstractController
     }
 
 		#[Route('api/produits/', name:'list-produits-by-client', methods:['GET'])]
-		public function getProductListByClient(Request $request, ProduitRepository $repository, ClientRepository $clientRepository): JsonResponse
+		public function getProductListByClient(ProduitRepository $repository, ClientRepository $clientRepository): JsonResponse
 		{
 			$products = $this->cachePool->get(self::CACHE_KEY_GETALLPRODUCTSBYCUSTOMER, function(ItemInterface $item) use ($repository, $clientRepository) {
 				$item->tag('productByCustomerCache');
@@ -104,7 +103,7 @@ class ProduitController extends AbstractController
 		}
 
 		#[Route('/api/produits/{id}', name:'suppression_produits', methods:['DELETE'] )]
-		public function deleteProduit(Request $request, int $id): JsonResponse
+		public function deleteProduit(int $id): JsonResponse
 		{
 			$response = '';
 			$produit = $this->getRepository()->find($id);
