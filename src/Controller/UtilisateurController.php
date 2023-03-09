@@ -27,7 +27,7 @@
 		}
 
 		#[Route('api/utilisateurs/', name:'liste_utilisateurs_par_clients', methods:['GET'])]
-		public function getListUsersByCustomer(Request $request, UtilisateurRepository $repository): JsonResponse
+		public function getListUsersByCustomer(UtilisateurRepository $repository): JsonResponse
 		{
 			$usersList = $this->cachePool->get(self::CACHE_KEY_GETALLUSERSBYCUSTOMER,
 				function (ItemInterface $item) use ($repository) {
@@ -42,7 +42,7 @@
 		}
 
 		#[Route('api/utilisateurs', name:'liste_utilisateurs', methods:['GET'])]
-		public function getListUsers(Request $request): JsonResponse
+		public function getListUsers(): JsonResponse
 		{
 
 			$usersList = $this->cachePool->get(
@@ -59,7 +59,7 @@
 		}
 
 		#[Route('api/utilisateurs/{id}', name:'details_utilisateurs', methods:['GET'])]
-		public function getDetailsUsers(Request $request, int $id): JsonResponse
+		public function getDetailsUsers(int $id): JsonResponse
 		{
 			$user = $this->getRepository()->find($id);
 			$jsonUser = $this->serializer->serialize($user, 'json', ['groups' => 'getUtilisateurs']);
@@ -127,7 +127,7 @@
 		}
 
 		#[Route('api/utilisateurs/{id}', name:'delete_utilisateurs', methods:['DELETE'])]
-		public function deleteUsers(Request $request, int $id): JsonResponse
+		public function deleteUsers(int $id): JsonResponse
 		{
 			$response = '';
 
