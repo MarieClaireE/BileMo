@@ -18,18 +18,19 @@
 
 class ClientController extends AbstractController
 	{
-	   public const CACHE_KEY_GETALLCUSTOMERS = "getAllCustomers";
+				public const CACHE_KEY_GETALLCUSTOMERS = "getAllCustomers";
 
-		public function getRepository(): ClientRepository
+				public function getRepository(): ClientRepository
 	{
 		return $this->em->getRepository(Client::class);
 	}
 
 				/**
-				 * @Route('api/clients/', name:'list_clients', methods:['GET'])
 				 * @return JsonResponse
 				 * @throws InvalidArgumentException
 				 */
+
+					#[Route('api/clients/', name:'list_clients', methods:['GET'])]
 					public function getClientList(): JsonResponse
 		{
 			$customerList = $this->cachePool->get (self::CACHE_KEY_GETALLCUSTOMERS, function (ItemInterface $item) {
