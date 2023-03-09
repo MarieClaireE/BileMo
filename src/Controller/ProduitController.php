@@ -46,12 +46,12 @@ class ProduitController extends AbstractController
 			);
     }
 
-		#[Route('api/produits/by/{emailClient}', name:'list-produits-by-client', methods:['GET'])]
-		public function getProductListByClient(Request $request, ProduitRepository $repository, string $emailClient, ClientRepository $clientRepository): JsonResponse
+		#[Route('api/produits/', name:'list-produits-by-client', methods:['GET'])]
+		public function getProductListByClient(Request $request, ProduitRepository $repository, ClientRepository $clientRepository): JsonResponse
 		{
-			$products = $this->cachePool->get(self::CACHE_KEY_GETALLPRODUCTSBYCUSTOMER, function(ItemInterface $item, ) use ($repository, $clientRepository, $emailClient) {
+			$products = $this->cachePool->get(self::CACHE_KEY_GETALLPRODUCTSBYCUSTOMER, function(ItemInterface $item) use ($repository, $clientRepository) {
 				$item->tag('productByCustomerCache');
-				$client = $clientRepository->findByEmail($emailClient);
+				$client = $this->getUser();
 				return $this->getRepository()->findByCustomer($client);
 			});
 
@@ -67,16 +67,10 @@ class ProduitController extends AbstractController
 			return new JsonResponse($jsonProduit,Response::HTTP_OK, ['accept' => 'json'],true);
 		}
 
-		#[Route('/api/produits/by/{email}', name:'creation_produits', methods:['POST'] )]
-		public function postProduit(Request $request, string $email): JsonResponse
+		#[Route('/api/produits/', name:'creation_produits', methods:['POST'] )]
+		public function postProduit(Request $request): JsonResponse
 		{
-			/**
-			 * @var ClientRepository $clientRepo
-			 */
-			$clientRepo = $this->em->getRepository(Client::class);
-			$client = $clientRepo->findByEmail($email);
-
-
+			$client = $this->getUser();
 			$produit = $this->serializer->deserialize(
 				$request->getContent(),
 				Produit::class,

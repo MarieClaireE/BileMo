@@ -26,17 +26,15 @@
 			return $this->em->getRepository(Utilisateur::class);
 		}
 
-		#[Route('api/utilisateurs/by/{email}', name:'liste_utilisateurs_par_clients', methods:['GET'])]
-		public function getListUsersByCustomer(Request $request, string $email,
-		                                       UtilisateurRepository $repository): JsonResponse
+		#[Route('api/utilisateurs/', name:'liste_utilisateurs_par_clients', methods:['GET'])]
+		public function getListUsersByCustomer(Request $request, UtilisateurRepository $repository): JsonResponse
 		{
 			$usersList = $this->cachePool->get(self::CACHE_KEY_GETALLUSERSBYCUSTOMER,
-			function(ItemInterface $item) use ($repository, $email) {
-				$item->tag('usersByCustomerCache');
-				$client = $this->em->getRepository(Client::class)->findByEmail($email);
-				$users = $this->getRepository()->findByClient($client);
-				return $users;
-			});
+				function (ItemInterface $item) use ($repository) {
+					$item->tag('usersByCustomerCache');
+					$client = $this->getUser();
+					return $this->getRepository()->findByClient($client);;
+				});
 
 			$jsonListUsers = $this->serializer->serialize($usersList, 'json', ['groups' => 'getUtilisateurs']);
 
@@ -68,10 +66,10 @@
 			return new JsonResponse($jsonUser, Response::HTTP_OK, ['accept' => 'json'], true);
 		}
 
-		#[Route('api/utilisateurs/by/{email}', name:'ajout_utilisateurs_by_client', methods:['POST'])]
-		public function postUsersByCustomer(Request $request, string $email): JsonResponse
+		#[Route('api/utilisateurs', name:'ajout_utilisateurs_by_client', methods:['POST'])]
+		public function postUsersByCustomer(Request $request): JsonResponse
 		{
-			$client = $this->em->getRepository(Client::class)->findByEmail($email);
+			$client = $this->getUser();
 
 			$user = $this->serializer->deserialize(
 				$request->getContent(),
