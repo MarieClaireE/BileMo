@@ -50,7 +50,7 @@
 		public function deleteClient(): JsonResponse
 		{
 			$response = '';
-			$client=$this->getUser();
+			$client = $this->getUser();
 			if(is_null($client)) {
 				$response = new JsonResponse(['error'=>'Une erreur est survenue lors de la suppression'], Response::HTTP_NOT_FOUND);
 			} else {
