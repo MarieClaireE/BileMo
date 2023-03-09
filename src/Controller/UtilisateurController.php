@@ -100,12 +100,12 @@
 			return new JsonResponse($jsonUser, Response::HTTP_CREATED, ['location' => $location], true);
 		}
 
-		#[Route('api/utilisateurs/{email}', name:'update_utilisateurs', methods:['PUT'])]
-		public function putUpdateUsers(Request $request, string $email ): JsonResponse
+		#[Route('api/utilisateurs/{id}', name:'update_utilisateurs', methods:['PUT'])]
+		public function putUpdateUsers(Request $request, int $id ): JsonResponse
 		{
 			$response = '';
 
-			$user = $this->getRepository()->findByEmail($email);
+			$user = $this->getRepository()->find($id);
 
 			if(is_null($user)) {
 				$response = new JsonResponse(['error' => 'Une erreur est survenue lors de la modification de l\'utilisateur'], Response::HTTP_NOT_FOUND);
@@ -126,12 +126,12 @@
 			return $response;
 		}
 
-		#[Route('api/utilisateurs/{email}', name:'delete_utilisateurs', methods:['DELETE'])]
-		public function deleteUsers(Request $request, string $email): JsonResponse
+		#[Route('api/utilisateurs/{id}', name:'delete_utilisateurs', methods:['DELETE'])]
+		public function deleteUsers(Request $request, int $id): JsonResponse
 		{
 			$response = '';
 
-			$user = $this->getRepository()->findByEmail($email);
+			$user = $this->getRepository()->find($id);
 
 
 			if(is_null($user)) {
