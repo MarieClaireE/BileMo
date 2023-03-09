@@ -18,7 +18,7 @@
 
 	class ClientController extends AbstractController
 	{
-	   public const CACHE_KEY_GETALLCUSTOMERS ="getAllCustomers";
+	   public const CACHE_KEY_GETALLCUSTOMERS = "getAllCustomers";
 
 		public function getRepository(): ClientRepository
 	{
