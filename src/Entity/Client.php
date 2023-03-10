@@ -11,6 +11,49 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
+/**
+ * @ApiResource(
+ *   security="is_granted('ROLE_USER')
+ *   itemOperations={
+ *      "get" = {"security" = "is_granted('ROLE_USER') and object == client"}
+ *   },
+ *   collectionOperations={
+ *       "get",
+ *       "post" = {
+ *            "security" = "is_granted('IS_AUTHENTICATED_ANONYMOUSLY')"
+ *        },
+ *        "login" = {
+ *            "security" = "is_granted('IS_AUTHENTICATED_ANONYMOUSLY')
+ *            "route_name" = "api_login_check"
+ *            "method" = "POST"
+ *            "openapi_context" = {
+ *                 "summary" = "Login method",
+ *                 "requestBody" = {
+ *                     "description" = "Get token",
+ *                     "content" = {
+ *                         "application/json" = {
+ *                             "schema" = {
+ *                                 "type" = "object",
+ *                                 "required" = {
+ *                                     "username",
+ *                                     "password"
+ *                                 },
+ *                                 "properties" = {
+ *                                     "username" = {
+ *                                         "type" = "string"
+ *                                     },
+ *                                     "password" = {
+ *                                         "type" = "string"
+ *                                     }
+ *                                 }
+ *                             }
+ *                         }
+ *                     }
+ *                 }
+ *             }
+ *          }
+ * )
+ */
 class Client implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
