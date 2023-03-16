@@ -125,7 +125,8 @@ class ProduitController extends AbstractController
 		{
 			$response = '';
 
-			$produit = $this->getRepository()->find($id);
+			$client = $this->getUser();
+			$produit = $this->getRepository()->findBy(['id' => $id, 'client' => $client]);
 
 			if($produit ===  null) {
 				$response = new JsonResponse(['error' => 'Une erreur est survenue lors la modification du produit'], Response::HTTP_NOT_FOUND);
