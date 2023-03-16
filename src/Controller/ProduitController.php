@@ -32,6 +32,7 @@ class ProduitController extends AbstractController
 		}
 
     #[Route('/api/produits', name: 'list_produits', methods:['GET'])]
+		#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste de tous les produits')]
     public function getProductlist(ProduitRepository $repository): JsonResponse
     {
 			$productlist = $this->cachePool->get(self::CACHE_KEY_GETALLPRODUCTS, function(ItemInterface $item) use ($repository) {
