@@ -8,4 +8,4 @@ kernel:
 
 api_login_check:
     path: /api/login_check
-    method: ['POST']
+    methods: ['POST']
