@@ -7,6 +7,7 @@
 	use App\Repository\ClientRepository;
 	use App\Repository\UtilisateurRepository;
 	use Psr\Cache\InvalidArgumentException;
+	use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 	use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 	use Symfony\Component\HttpFoundation\JsonResponse;
 	use Symfony\Component\HttpFoundation\Request;
@@ -47,6 +48,7 @@
 		}
 
 		#[Route('api/utilisateurs', name:'liste_utilisateurs', methods:['GET'])]
+		#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour consulter la liste des utilisateurs')]
 		public function getListUsers(): JsonResponse
 		{
 
