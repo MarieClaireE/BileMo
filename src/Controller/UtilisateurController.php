@@ -19,37 +19,40 @@
 
 	class UtilisateurController extends AbstractController
 	{
-		const GETALLUSERSBYCUSTOMER = "getAllUsersByCustomer";
-		const GETALLUSERS = "getAllUsers";
+		public const CACHE_KEY_GETALLUSERSBYCUSTOMER = "getAllUsersByCustomer";
+		public const CACHE_KEY_GETALLUSERS = "getAllUsers";
 
 		public function getRepository(): UtilisateurRepository
 		{
 			return $this->em->getRepository(Utilisateur::class);
 		}
 
-		#[Route('api/liste/utilisateurs/by/{email}', name:'liste_utilisateurs_par_clients', methods:['GET'])]
-		public function getListUsersByCustomer(Request $request, string $email,
-		                                       UtilisateurRepository $repository): JsonResponse
+		/**
+		 * @return JsonResponse
+		 * @throws InvalidArgumentException
+		 */
+		#[Route('api/utilisateurs/', name:'liste_utilisateurs_par_clients', methods:['GET'])]
+		public function getListUsersByCustomer(UtilisateurRepository $repository): JsonResponse
 		{
-			$usersList = $this->cachePool->get(self::GETALLUSERSBYCUSTOMER,
-			function(ItemInterface $item) use ($repository, $email) {
-				$item->tag('usersByCustomerCache');
-				$client = $this->em->getRepository(Client::class)->findByEmail($email);
-				$users = $this->getRepository()->findByClient($client);
-				return $users;
-			});
+			$usersList = $this->cachePool->get(self::CACHE_KEY_GETALLUSERSBYCUSTOMER,
+				function (ItemInterface $item) use ($repository) {
+					$item->tag('usersByCustomerCache');
+					$client = $this->getUser();
+					return $this->getRepository()->findByClient($client);;
+				});
 
 			$jsonListUsers = $this->serializer->serialize($usersList, 'json', ['groups' => 'getUtilisateurs']);
 
 			return new JsonResponse($jsonListUsers, Response::HTTP_OK, [], true);
 		}
 
-		#[Route('api/liste/utilisateurs', name:'liste_utilisateurs', methods:['GET'])]
-		public function getListUsers(Request $request): JsonResponse
+		#[Route('api/utilisateurs', name:'liste_utilisateurs', methods:['GET'])]
+		#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour consulter la liste des utilisateurs')]
+		public function getListUsers(): JsonResponse
 		{
 
 			$usersList = $this->cachePool->get(
-				self::GETALLUSERS,
+				self::CACHE_KEY_GETALLUSERS,
 				function(ItemInterface $item) {
 					$item->tag('usersCache');
 					return $this->getRepository()->findAll();
@@ -61,18 +64,18 @@
 			return new JsonResponse($jsonUsers, Response::HTTP_OK, [], true);
 		}
 
-		#[Route('api/details/utilisateurs/{id}', name:'details_utilisateurs', methods:['GET'])]
-		public function getDetailsUsers(Request $request, int $id): JsonResponse
+		#[Route('api/utilisateurs/{id}', name:'details_utilisateurs', methods:['GET'])]
+		public function getDetailsUsers(int $id): JsonResponse
 		{
 			$user = $this->getRepository()->find($id);
 			$jsonUser = $this->serializer->serialize($user, 'json', ['groups' => 'getUtilisateurs']);
 			return new JsonResponse($jsonUser, Response::HTTP_OK, ['accept' => 'json'], true);
 		}
 
-		#[Route('api/ajout/utilisateurs/by/{email}', name:'ajout_utilisateurs_by_client', methods:['POST'])]
-		public function postUsersByCustomer(Request $request, string $email): JsonResponse
+		#[Route('api/utilisateurs', name:'ajout_utilisateurs_by_client', methods:['POST'])]
+		public function postUsersByCustomer(Request $request): JsonResponse
 		{
-			$client = $this->em->getRepository(Client::class)->findByEmail($email);
+			$client = $this->getUser();
 
 			$user = $this->serializer->deserialize(
 				$request->getContent(),
@@ -103,15 +106,15 @@
 			return new JsonResponse($jsonUser, Response::HTTP_CREATED, ['location' => $location], true);
 		}
 
-		#[Route('api/update/utilisateurs/{email}', name:'update_utilisateurs', methods:['PUT'])]
-		public function putUpdateUsers(Request $request, string $email ): JsonResponse
+		#[Route('api/utilisateurs/{id}', name:'update_utilisateurs', methods:['PUT'])]
+		public function putUpdateUsers(Request $request, int $id ): JsonResponse
 		{
-			$message = '';
+			$response = '';
 
-			$user = $this->getRepository()->findByEmail($email);
+			$user = $this->getRepository()->find($id);
 
 			if(is_null($user)) {
-				$message = 'Cet utilisateur n\'existe pas';
+				$response = new JsonResponse(['error' => 'Une erreur est survenue lors de la modification de l\'utilisateur'], Response::HTTP_NOT_FOUND);
 			} else {
 				$updateUser = $this->serializer->deserialize(
 					$request->getContent(),
@@ -123,31 +126,31 @@
 				$this->em->persist($updateUser);
 				$this->em->flush();
 
-				$message = 'L‘utilisateur '. $user->getName() .' a été mis à jour';
+				$response = new JsonResponse(['success' => 'Utilisateur modifié avec succès'], Response::HTTP_OK);
 			}
 
-			return new JsonResponse($message, JsonResponse::HTTP_OK);
+			return $response;
 		}
 
-		#[Route('api/suppression/utilisateurs/{email}', name:'delete_utilisateurs', methods:['DELETE'])]
-		public function deleteUsers(Request $request, string $email): JsonResponse
+		#[Route('api/utilisateurs/{id}', name:'delete_utilisateurs', methods:['DELETE'])]
+		public function deleteUsers(int $id): JsonResponse
 		{
-			$message = '';
+			$response = '';
 
-			$user = $this->getRepository()->findByEmail($email);
+			$user = $this->getRepository()->find($id);
 
 
 			if(is_null($user)) {
-				$message = "Cet utilisateur n'existe pas";
+				$response = new JsonResponse(['error' => 'Une erreur est survenue lors de la suppression de l\'utilisateur'], Response::HTTP_NOT_FOUND);
 			} else {
 				$name = $user->getName();
 				$this->cachePool->invalidateTags(['usersCache', 'usersByCustomerCache']);
 				$this->em->remove($user);
 				$this->em->flush();
 
-				$message = "L'utilisateur $name a été supprimé ! ";
+				$response = new JsonResponse(['success' => 'Utilisateur supprimé avec succès'], Response::HTTP_OK);;
 			}
 
-			return new JsonResponse($message, Response::HTTP_OK);
+			return $response;
 		}
 	}
