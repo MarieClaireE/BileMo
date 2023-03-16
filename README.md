@@ -5,8 +5,7 @@ Résultat sur codacy : [![Codacy Badge](https://app.codacy.com/project/badge/Gra
 # Information sur l'API 
 1. Le token d'authentification s'obtient via l'envoi des identifiants sur 
 l'URI `/api/login_check`.
-2. Par mesure de sécurité, toutes les methodes ['PUT'/'DELETE'] 
-ne sont accessible qu'aux utilisateurs ayant un rôle ['ROLE_ADMIN'].
+
 
 # Installation du projet 
 1. Cloner ou télécharger le projet :
