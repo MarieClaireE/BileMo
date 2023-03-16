@@ -104,7 +104,6 @@
 		}
 
 		#[Route('api/update/utilisateurs/{email}', name:'update_utilisateurs', methods:['PUT'])]
-		#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour modifier un utilisateur')]
 		public function putUpdateUsers(Request $request, string $email ): JsonResponse
 		{
 			$message = '';
@@ -131,7 +130,6 @@
 		}
 
 		#[Route('api/suppression/utilisateurs/{email}', name:'delete_utilisateurs', methods:['DELETE'])]
-		#[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits requis pour supprimer un utilisateur')]
 		public function deleteUsers(Request $request, string $email): JsonResponse
 		{
 			$message = '';
