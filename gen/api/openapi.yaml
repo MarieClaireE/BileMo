@@ -1,0 +1,548 @@
+openapi: 3.0.0
+info:
+  title: Bilemo API
+  version: 0.1.9
+servers:
+- url: http://api.bilemo.com/api
+tags:
+- description: Accès aux utilisateurs
+  name: Utilisateurs
+- description: Accès aux produits
+  name: Produits
+- description: Accès aux clients
+  name: Client
+- name: Authentification
+paths:
+  /login_check:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credential'
+        description: Génération d'un nouveau token JWT
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+          description: JWT Token obtenu
+      security: []
+      summary: Retourne le token JWT pour l'authentification sur les routes.
+      tags:
+      - Authentification
+      x-contentType: application/json
+      x-accepts: application/json
+  /clients:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Client'
+                type: array
+          description: A JSON array returning id, email and role of customers.
+        "401":
+          description: Le token d'accès est invalide ou manquant
+      security:
+      - JWT: []
+      summary: Returns a list of customers.
+      tags:
+      - Client
+      x-accepts: application/json
+  /clients/{clientId}:
+    delete:
+      parameters:
+      - explode: false
+        in: path
+        name: clientId
+        required: true
+        schema:
+          example: 4
+          format: int64
+          minimum: 1
+          type: integer
+        style: simple
+      responses:
+        "200":
+          description: Customer deleted.
+        "401":
+          description: Le token d'accès est invalide ou manquant
+        "404":
+          description: ClientId not found.
+      security:
+      - JWT: []
+      summary: Delete customer by Id.
+      tags:
+      - Client
+      x-accepts: application/json
+    get:
+      parameters:
+      - explode: false
+        in: path
+        name: clientId
+        required: true
+        schema:
+          example: 4
+          format: int64
+          minimum: 1
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: OK.
+        "400":
+          description: Customer with the specified ID was not found.
+        "401":
+          description: Expired JWT Token
+      security:
+      - JWT: []
+      summary: Returns a customer by Id.
+      tags:
+      - Client
+      x-accepts: application/json
+  /utilisateurs:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Utilisateurs'
+                type: array
+          description: Un tableau JSON d'utilisateurs
+        "401":
+          description: Le token d'accès est invalide ou manquant
+      security:
+      - JWT: []
+      summary: Retourne un tableau d'utilisateurs
+      tags:
+      - Utilisateurs
+      x-accepts: application/json
+    post:
+      requestBody:
+        $ref: '#/components/requestBodies/inline_object'
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  example: Nom Prenom
+                  type: string
+                email:
+                  example: nomPrenom@bilemo.com
+                  type: string
+              type: object
+        required: true
+      responses:
+        "201":
+          description: Utilisateur créé
+        "401":
+          description: Le token d'accès est invalide ou manquant
+      security:
+      - JWT: []
+      summary: Créer un utilisateur
+      tags:
+      - Utilisateurs
+      x-contentType: application/json
+      x-accepts: application/json
+  /utilisateurs/{userId}:
+    delete:
+      parameters:
+      - explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          example: 1
+          format: int64
+          minimum: 1
+          type: integer
+        style: simple
+      responses:
+        "200":
+          description: Utilisateur supprimé.
+        "401":
+          description: Le token d'accès est invalide ou manquant
+        "404":
+          description: L'utilisateur est introuvable.
+      security:
+      - JWT: []
+      summary: Supprimer un utilisateur
+      tags:
+      - Utilisateurs
+      x-accepts: application/json
+    get:
+      parameters:
+      - explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          example: 1
+          format: int64
+          minimum: 1
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Utilisateurs'
+          description: Tableau JSON d'un utilisateur
+        "401":
+          description: Le token d'accès est invalide ou manquant
+      security:
+      - JWT: []
+      summary: Retourne les détails d'un utilisateur
+      tags:
+      - Utilisateurs
+      x-accepts: application/json
+    put:
+      parameters:
+      - explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          example: 1
+          format: int64
+          minimum: 1
+          type: integer
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/inline_object_1'
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  example: Nouveau nom
+                  type: string
+                email:
+                  example: nouvel-email@bilemo.com
+                  type: string
+              type: object
+        required: true
+      responses:
+        "201":
+          description: Utilisateur modifié
+        "401":
+          description: Le token d'accès est invalide ou manquant
+        "404":
+          description: Utilisateur introuvable, vérifié l'UserID
+      security:
+      - JWT: []
+      summary: Modifier un utilisateur
+      tags:
+      - Utilisateurs
+      x-contentType: application/json
+      x-accepts: application/json
+  /produits:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Produit'
+                type: array
+          description: Liste des produits
+      security:
+      - JWT: []
+      summary: Retourne la liste des produits
+      tags:
+      - Produits
+      x-accepts: application/json
+    post:
+      requestBody:
+        $ref: '#/components/requestBodies/inline_object_2'
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  example: Nom du produit
+                  type: string
+                description:
+                  example: Description du produit
+                  type: string
+                price:
+                  example: 250
+                  type: integer
+              type: object
+        required: true
+      responses:
+        "201":
+          description: Produit créé
+        "401":
+          description: Le token d'accès est invalide ou manquant
+      security:
+      - JWT: []
+      summary: Création d'un produit
+      tags:
+      - Produits
+      x-contentType: application/json
+      x-accepts: application/json
+  /produits/{produitId}:
+    delete:
+      parameters:
+      - explode: false
+        in: path
+        name: produitId
+        required: true
+        schema:
+          example: 2
+          format: int64
+          minimum: 1
+          type: integer
+        style: simple
+      responses:
+        "200":
+          description: Produit supprimé.
+        "401":
+          description: Le token d'accès est invalide ou manquant
+        "404":
+          description: Le produit est introuvable.
+      security:
+      - JWT: []
+      summary: Suppression d'un produit
+      tags:
+      - Produits
+      x-accepts: application/json
+    get:
+      parameters:
+      - explode: false
+        in: path
+        name: produitId
+        required: true
+        schema:
+          example: 2
+          format: int64
+          minimum: 1
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Produit'
+          description: JSON de du produit sélectionné
+        "401":
+          description: Le token d'accès est invalide ou manquant
+      security:
+      - JWT: []
+      summary: Retourne les détails du produit
+      tags:
+      - Produits
+      x-accepts: application/json
+    put:
+      parameters:
+      - explode: false
+        in: path
+        name: produitId
+        required: true
+        schema:
+          example: 2
+          format: int64
+          minimum: 1
+          type: integer
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/inline_object_3'
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  example: Nouveau nom
+                  type: string
+                description:
+                  example: Nouvelle description
+                  type: string
+                price:
+                  type: integer
+              type: object
+        required: true
+      responses:
+        "201":
+          description: Produit modifié
+        "401":
+          description: Le token d'accès est invalide ou manquant
+        "404":
+          description: Produit introuvable, vérifié le produitId
+      security:
+      - JWT: []
+      summary: Modifier un produit
+      tags:
+      - Produits
+      x-contentType: application/json
+      x-accepts: application/json
+components:
+  requestBodies:
+    inline_object_1:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/inline_object_1'
+      required: true
+    inline_object:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/inline_object'
+      required: true
+    inline_object_3:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/inline_object_3'
+      required: true
+    inline_object_2:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/inline_object_2'
+      required: true
+  responses:
+    UnauthorizedError:
+      description: Le token d'accès est invalide ou manquant
+  schemas:
+    Client:
+      example:
+        role: ROLE_USER
+        id: 4
+        email: name.firstname@bilemo.com
+      properties:
+        id:
+          example: 4
+          format: int64
+          type: integer
+        email:
+          example: name.firstname@bilemo.com
+          type: string
+        role:
+          example: ROLE_USER
+          type: string
+      type: object
+    Produit:
+      example:
+        price: 0
+        name: Iphone X
+        description: description de l'IPHONE X
+        client:
+          role: ROLE_USER
+          id: 4
+          email: name.firstname@bilemo.com
+        id: 2
+      properties:
+        id:
+          example: 2
+          format: int64
+          type: integer
+        name:
+          example: Iphone X
+          type: string
+        description:
+          example: description de l'IPHONE X
+          type: string
+        price:
+          type: integer
+        client:
+          $ref: '#/components/schemas/Client'
+      type: object
+    Utilisateurs:
+      example:
+        name: Name
+        id: 1
+        email: email@bilemo.com
+      properties:
+        id:
+          example: 1
+          format: int64
+          type: integer
+        name:
+          example: Name
+          type: string
+        email:
+          example: email@bilemo.com
+          type: string
+      type: object
+    Token:
+      example:
+        token: token
+      properties:
+        token:
+          readOnly: true
+          type: string
+      type: object
+    Credential:
+      example:
+        password: password
+        username: email@bilemo.com
+      properties:
+        username:
+          example: email@bilemo.com
+          type: string
+        password:
+          example: password
+          type: string
+      type: object
+    inline_object:
+      properties:
+        name:
+          example: Nom Prenom
+          type: string
+        email:
+          example: nomPrenom@bilemo.com
+          type: string
+      type: object
+    inline_object_1:
+      properties:
+        name:
+          example: Nouveau nom
+          type: string
+        email:
+          example: nouvel-email@bilemo.com
+          type: string
+      type: object
+    inline_object_2:
+      properties:
+        name:
+          example: Nom du produit
+          type: string
+        description:
+          example: Description du produit
+          type: string
+        price:
+          example: 250
+          type: integer
+      type: object
+    inline_object_3:
+      properties:
+        name:
+          example: Nouveau nom
+          type: string
+        description:
+          example: Nouvelle description
+          type: string
+        price:
+          type: integer
+      type: object
+  securitySchemes:
+    JWT:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
+

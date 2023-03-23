@@ -1,0 +1,642 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Bilemo API",
+      "version": "0.1.9"
+    },
+    "servers": [
+      {
+        "url": "http://api.bilemo.com/api"
+      }
+    ],
+    "tags": [
+      {
+        "name": "Utilisateurs",
+        "description": "Accès aux utilisateurs"
+      },
+      {
+        "name": "Produits",
+        "description": "Accès aux produits"
+      },
+      {
+        "name": "Client",
+        "description": "Accès aux clients"
+      },
+      {
+        "name": "Authentification"
+      }
+    ],
+    "components": {
+      "securitySchemes": {
+        "JWT": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      },
+      "responses": {
+        "UnauthorizedError": {
+          "description": "Le token d'accès est invalide ou manquant"
+        }
+      },
+      "schemas": {
+        "Client": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "example": 4
+            },
+            "email": {
+              "type": "string",
+              "example": "name.firstname@bilemo.com"
+            },
+            "role": {
+              "type": "string",
+              "example": "ROLE_USER"
+            }
+          }
+        },
+        "Produit": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "example": 2
+            },
+            "name": {
+              "type": "string",
+              "example": "Iphone X"
+            },
+            "description": {
+              "type": "string",
+              "example": "description de l'IPHONE X"
+            },
+            "price": {
+              "type": "integer",
+              "example": 1000.1
+            },
+            "client": {
+              "$ref": "#/components/schemas/Client"
+            }
+          }
+        },
+        "Utilisateurs": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "example": 1
+            },
+            "name": {
+              "type": "string",
+              "example": "Name"
+            },
+            "email": {
+              "type": "string",
+              "example": "email@bilemo.com"
+            }
+          }
+        },
+        "Token": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string",
+              "readOnly": true
+            }
+          }
+        },
+        "Credential": {
+          "type": "object",
+          "properties": {
+            "username": {
+              "type": "string",
+              "example": "email@bilemo.com"
+            },
+            "password": {
+              "type": "string",
+              "example": "password"
+            }
+          }
+        }
+      }
+    },
+    "paths": {
+      "/login_check": {
+        "post": {
+          "tags": [
+            "Authentification"
+          ],
+          "summary": "Retourne le token JWT pour l'authentification sur les routes.",
+          "responses": {
+            "200": {
+              "description": "JWT Token obtenu",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Token"
+                  }
+                }
+              }
+            }
+          },
+          "requestBody": {
+            "description": "Génération d'un nouveau token JWT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Credential"
+                }
+              }
+            }
+          },
+          "security": [
+            
+          ]
+        }
+      },
+      "/clients": {
+        "get": {
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "tags": [
+            "Client"
+          ],
+          "summary": "Returns a list of customers.",
+          "responses": {
+            "200": {
+              "description": "A JSON array returning id, email and role of customers.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Client"
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "$ref": "#/components/responses/UnauthorizedError"
+            }
+          }
+        }
+      },
+      "/clients/{clientId}": {
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "example": 4
+            }
+          }
+        ],
+        "get": {
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "tags": [
+            "Client"
+          ],
+          "summary": "Returns a customer by Id.",
+          "responses": {
+            "200": {
+              "description": "OK.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Client"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Customer with the specified ID was not found."
+            },
+            "401": {
+              "description": "Expired JWT Token"
+            }
+          }
+        },
+        "delete": {
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "tags": [
+            "Client"
+          ],
+          "summary": "Delete customer by Id.",
+          "responses": {
+            "200": {
+              "description": "Customer deleted."
+            },
+            "401": {
+              "$ref": "#/components/responses/UnauthorizedError"
+            },
+            "404": {
+              "description": "ClientId not found."
+            }
+          }
+        }
+      },
+      "/utilisateurs": {
+        "get": {
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "tags": [
+            "Utilisateurs"
+          ],
+          "summary": "Retourne un tableau d'utilisateurs",
+          "responses": {
+            "200": {
+              "description": "Un tableau JSON d'utilisateurs",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Utilisateurs"
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "$ref": "#/components/responses/UnauthorizedError"
+            }
+          }
+        },
+        "post": {
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "tags": [
+            "Utilisateurs"
+          ],
+          "summary": "Créer un utilisateur",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "Nom Prenom"
+                    },
+                    "email": {
+                      "type": "string",
+                      "example": "nomPrenom@bilemo.com"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Utilisateur créé"
+            },
+            "401": {
+              "$ref": "#/components/responses/UnauthorizedError"
+            }
+          }
+        }
+      },
+      "/utilisateurs/{userId}": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "example": 1
+            }
+          }
+        ],
+        "get": {
+          "tags": [
+            "Utilisateurs"
+          ],
+          "summary": "Retourne les détails d'un utilisateur",
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Tableau JSON d'un utilisateur",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Utilisateurs"
+                  }
+                }
+              }
+            },
+            "401": {
+              "$ref": "#/components/responses/UnauthorizedError"
+            }
+          }
+        },
+        "delete": {
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "tags": [
+            "Utilisateurs"
+          ],
+          "summary": "Supprimer un utilisateur",
+          "responses": {
+            "200": {
+              "description": "Utilisateur supprimé."
+            },
+            "401": {
+              "$ref": "#/components/responses/UnauthorizedError"
+            },
+            "404": {
+              "description": "L'utilisateur est introuvable."
+            }
+          }
+        },
+        "put": {
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "tags": [
+            "Utilisateurs"
+          ],
+          "summary": "Modifier un utilisateur",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "Nouveau nom"
+                    },
+                    "email": {
+                      "type": "string",
+                      "example": "nouvel-email@bilemo.com"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Utilisateur modifié"
+            },
+            "401": {
+              "$ref": "#/components/responses/UnauthorizedError"
+            },
+            "404": {
+              "description": "Utilisateur introuvable, vérifié l'UserID"
+            }
+          }
+        }
+      },
+      "/produits": {
+        "get": {
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "tags": [
+            "Produits"
+          ],
+          "summary": "Retourne la liste des produits",
+          "responses": {
+            "200": {
+              "description": "Liste des produits",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Produit"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "post": {
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "tags": [
+            "Produits"
+          ],
+          "summary": "Création d'un produit",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "Nom du produit"
+                    },
+                    "description": {
+                      "type": "string",
+                      "example": "Description du produit"
+                    },
+                    "price": {
+                      "type": "integer",
+                      "example": 250
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Produit créé"
+            },
+            "401": {
+              "$ref": "#/components/responses/UnauthorizedError"
+            }
+          }
+        }
+      },
+      "/produits/{produitId}": {
+        "parameters": [
+          {
+            "name": "produitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "example": 2
+            }
+          }
+        ],
+        "get": {
+          "tags": [
+            "Produits"
+          ],
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "summary": "Retourne les détails du produit",
+          "responses": {
+            "200": {
+              "description": "JSON de du produit sélectionné",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Produit"
+                  }
+                }
+              }
+            },
+            "401": {
+              "$ref": "#/components/responses/UnauthorizedError"
+            }
+          }
+        },
+        "put": {
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "tags": [
+            "Produits"
+          ],
+          "summary": "Modifier un produit",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "Nouveau nom"
+                    },
+                    "description": {
+                      "type": "string",
+                      "example": "Nouvelle description"
+                    },
+                    "price": {
+                      "type": "integer",
+                      "example": 999.99
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Produit modifié"
+            },
+            "401": {
+              "$ref": "#/components/responses/UnauthorizedError"
+            },
+            "404": {
+              "description": "Produit introuvable, vérifié le produitId"
+            }
+          }
+        },
+        "delete": {
+          "security": [
+            {
+              "JWT": [
+                
+              ]
+            }
+          ],
+          "tags": [
+            "Produits"
+          ],
+          "summary": "Suppression d'un produit",
+          "responses": {
+            "200": {
+              "description": "Produit supprimé."
+            },
+            "401": {
+              "$ref": "#/components/responses/UnauthorizedError"
+            },
+            "404": {
+              "description": "Le produit est introuvable."
+            }
+          }
+        }
+      }
+    }
+  }
+  
