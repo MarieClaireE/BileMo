@@ -30,13 +30,15 @@ class ClientController extends AbstractController
 				 * @return JsonResponse
 				 * @throws InvalidArgumentException
 				 */
-				#[Route('api/clients/', name:'list_clients', methods:['GET'])]
-				public function getClientList(): JsonResponse
+				#[Route('/api/clients', name:'list_clients', methods:['GET'])]
+				public function getClientList(Request $request): JsonResponse
 				{
 
-					$customerList = $this->cachePool->get (self::CACHE_KEY_GETALLCUSTOMERS, function (ItemInterface $item) {
+					$customerList = $this->cachePool->get (self::CACHE_KEY_GETALLCUSTOMERS, function (ItemInterface $item) use ($request) {
 						$item->tag ('customersCache');
-						return $this->getRepository ()->findAll();
+						$page = $request->get('page', 1);
+						$limit = $request->get('limit', 3);
+						return $this->getRepository()->findAllWithPagination($page, $limit);
 					});
 
 					$jsonCustomerList = $this->serializer->serialize($customerList, 'json', ['groups' => 'getClients', 'getProduits', 'getUtilisateurs']);
@@ -44,7 +46,7 @@ class ClientController extends AbstractController
 
 				}
 
-				#[Route('api/clients/{id}', name:'details_clients', methods:['GET'])]
+				#[Route('/api/clients/{id}', name:'details_clients', methods:['GET'])]
 				public function getDetailsClient(Client $client): JsonResponse
 				{
 
@@ -54,7 +56,7 @@ class ClientController extends AbstractController
 
 				}
 
-				#[Route('api/clients/', name:'delete_client', methods:['DELETE'])]
+				#[Route('/api/clients/', name:'delete_client', methods:['DELETE'])]
 				#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour accéder à la liste des clients')]
 				public function deleteClient(): JsonResponse
 				{

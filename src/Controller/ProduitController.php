@@ -46,13 +46,15 @@ class ProduitController extends AbstractController
 			);
     }
 
-		#[Route('api/produits/', name:'list-produits-by-client', methods:['GET'])]
-		public function getProductListByClient(ProduitRepository $repository, ClientRepository $clientRepository): JsonResponse
+		#[Route('/api/produits', name:'list-produits-by-client', methods:['GET'])]
+		public function getProductListByClient(Request $request, ProduitRepository $repository, ClientRepository $clientRepository): JsonResponse
 		{
-			$products = $this->cachePool->get(self::CACHE_KEY_GETALLPRODUCTSBYCUSTOMER, function(ItemInterface $item) use ($repository, $clientRepository) {
+			$products = $this->cachePool->get(self::CACHE_KEY_GETALLPRODUCTSBYCUSTOMER, function(ItemInterface $item) use ($request, $repository, $clientRepository) {
 				$item->tag('productByCustomerCache');
+				$page = $request->get('page', 1);
+				$limit = $request->get('limit', 3);
 				$client = $this->getUser();
-				return $this->getRepository()->findByCustomer($client);
+				return $this->getRepository()->findByCustomer($client, $page, $limit);
 			});
 
 			$jsonProducts = $this->serializer->serialize($products, 'json', ['groups' => 'getProduits']);
@@ -124,7 +126,7 @@ class ProduitController extends AbstractController
 			return $response;
 		}
 
-		#[Route('api/produits/{id}', name: 'update_product', methods:['PUT'])]
+		#[Route('/api/produits/{id}', name: 'update_product', methods:['PUT'])]
 		public function updateProduit(Request $request, int $id): JsonResponse
 		{
 			$response = '';

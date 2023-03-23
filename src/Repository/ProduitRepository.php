@@ -40,11 +40,13 @@ class ProduitRepository extends ServiceEntityRepository
         }
     }
 
-		public function findByCustomer(Client $client)
+		public function findByCustomer(Client $client, $page, $limit)
 		{
 			return $this->createQueryBuilder('p')
 				->andWhere('p.client = :clientId')
 				->setParameter('clientId', $client->getId())
+				->setFirstResult(($page-1) * $limit)
+				->setMaxResults($limit)
 				->getQuery()
 				->getResult();
 		}

@@ -43,11 +43,14 @@ class UtilisateurRepository extends ServiceEntityRepository
 	/**
 	 * @return Utilisateur[]
 	 */
-		public function findByClient($client): array
+		public function findByClient($client, $page, $limit): array
 		{
 			$qb = $this->createQueryBuilder('u')
 				->where('u.client =:clientId')
-				->setParameter('clientId', $client->getId());
+				->setParameter('clientId', $client->getId())
+				->setFirstResult(($page-1) * $limit)
+				->setMaxResults($limit)
+			;
 
 			return $qb->getQuery()->getResult();
 		}

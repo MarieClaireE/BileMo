@@ -31,14 +31,16 @@
 		 * @return JsonResponse
 		 * @throws InvalidArgumentException
 		 */
-		#[Route('api/utilisateurs/', name:'liste_utilisateurs_par_clients', methods:['GET'])]
-		public function getListUsersByCustomer(UtilisateurRepository $repository): JsonResponse
+		#[Route('/api/utilisateurs', name:'liste_utilisateurs_par_clients', methods:['GET'])]
+		public function getListUsersByCustomer(Request $request): JsonResponse
 		{
 			$usersList = $this->cachePool->get(self::CACHE_KEY_GETALLUSERSBYCUSTOMER,
-				function (ItemInterface $item) use ($repository) {
+				function (ItemInterface $item) use ($request) {
 					$item->tag('usersByCustomerCache');
+					$page = $request->get('page', 1);
+					$limit = $request->get('limit', 3);
 					$client = $this->getUser();
-					return $this->getRepository()->findByClient($client);;
+					return $this->getRepository()->findByClient($client, $page, $limit);;
 				});
 
 			$jsonListUsers = $this->serializer->serialize($usersList, 'json', ['groups' => 'getUtilisateurs']);
@@ -46,7 +48,7 @@
 			return new JsonResponse($jsonListUsers, Response::HTTP_OK, [], true);
 		}
 
-		#[Route('api/utilisateurs', name:'liste_utilisateurs', methods:['GET'])]
+		#[Route('/api/utilisateurs', name:'liste_utilisateurs', methods:['GET'])]
 		#[IsGranted('ROLE_ADMIN', message:'Vous n\'avez pas les droits requis pour consulter la liste des utilisateurs')]
 		public function getListUsers(): JsonResponse
 		{
@@ -64,7 +66,7 @@
 			return new JsonResponse($jsonUsers, Response::HTTP_OK, [], true);
 		}
 
-		#[Route('api/utilisateurs/{id}', name:'details_utilisateurs', methods:['GET'])]
+		#[Route('/api/utilisateurs/{id}', name:'details_utilisateurs', methods:['GET'])]
 		public function getDetailsUsers(int $id): JsonResponse
 		{
 			$user = $this->getRepository()->find($id);
@@ -72,7 +74,7 @@
 			return new JsonResponse($jsonUser, Response::HTTP_OK, ['accept' => 'json'], true);
 		}
 
-		#[Route('api/utilisateurs', name:'ajout_utilisateurs_by_client', methods:['POST'])]
+		#[Route('/api/utilisateurs', name:'ajout_utilisateurs_by_client', methods:['POST'])]
 		public function postUsersByCustomer(Request $request): JsonResponse
 		{
 			$client = $this->getUser();
@@ -106,7 +108,7 @@
 			return new JsonResponse($jsonUser, Response::HTTP_CREATED, ['location' => $location], true);
 		}
 
-		#[Route('api/utilisateurs/{id}', name:'update_utilisateurs', methods:['PUT'])]
+		#[Route('/api/utilisateurs/{id}', name:'update_utilisateurs', methods:['PUT'])]
 		public function putUpdateUsers(Request $request, int $id ): JsonResponse
 		{
 			$response = '';
@@ -132,7 +134,7 @@
 			return $response;
 		}
 
-		#[Route('api/utilisateurs/{id}', name:'delete_utilisateurs', methods:['DELETE'])]
+		#[Route('/api/utilisateurs/{id}', name:'delete_utilisateurs', methods:['DELETE'])]
 		public function deleteUsers(int $id): JsonResponse
 		{
 			$response = '';
