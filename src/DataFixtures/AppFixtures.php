@@ -21,15 +21,6 @@ class AppFixtures extends Fixture
 	}
     public function load(ObjectManager $manager): void
     {
-			// creation de 1 client 'normal'
-	    $superClient = new Client();
-	    $superClient->setCode("C02");
-	    $superClient->setRoles(['ROLE_ADMIN']);
-	    $superClient->setEmail('client14@bilemo.com');
-	    $superClient->setFullname('CLIENT2 name');
-	    $superClient->setPassword($this->userPasswordHasher->hashPassword($superClient, 'password'));
-	    $manager->persist($superClient);
-
 	    // création d'un client 'admin'
 	    $admin = new Client();
 	    $admin->setCode("C01");
@@ -44,7 +35,8 @@ class AppFixtures extends Fixture
 		    $user = new Utilisateur();
 				$user->setName("User one");
 				$user->setEmail("user@bilemo.com");
-				$user->setCodeClient("C01");
+				$user->setCodeClient($admin->getCode());
+				$user->setClient($admin);
 				$manager->persist($user);
 	    }
 

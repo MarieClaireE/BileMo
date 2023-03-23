@@ -106,8 +106,12 @@ class ProduitController extends AbstractController
 		#[Route('/api/produits/{id}', name:'suppression_produits', methods:['DELETE'] )]
 		public function deleteProduit(int $id): JsonResponse
 		{
-			$response = '';
-			$produit = $this->getRepository()->find($id);
+    
+			$message = '';
+
+			$client = $this->getUser();
+			$produit = $this->getRepository()->findBy(['id' => $id, 'client' => $client]);
+
 
 			if($produit === null) {
 				$response = new JsonResponse(['error' => 'Une erreur est survenue lors de la suppression du produit'], Response::HTTP_NOT_FOUND);
