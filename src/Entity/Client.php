@@ -9,14 +9,25 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+
+use JMS\Serializer\Annotation as Serializer;
+use Hateoas\Configuration\Annotation as Hateoas;
+
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
+#[Serializer\XmlRoot("client")]
+#[Hateoas\Relation("self", href = "expr('/api/clients')" )]
+
+
+
+
 class Client implements UserInterface, PasswordAuthenticatedUserInterface
 {
+		#[Serializer\XmlAttribute]
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     #[Groups(["getClients", "getProduits", "getUtilisateurs"])]
-
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
