@@ -30,11 +30,20 @@ class AppFixtures extends Fixture
 	    $admin->setPassword($this->userPasswordHasher->hashPassword($admin, 'passwordAdmin'));
 	    $manager->persist($admin);
 
+			// création d'un client
+	    $customer = new Client();
+	    $customer->setCode("C02");
+	    $customer->setRoles(['ROLE_USER']);
+	    $customer->setEmail('customer@bilemo.com');
+	    $customer->setFullname('CLIENTClient');
+	    $customer->setPassword($this->userPasswordHasher->hashPassword($customer, 'passwordClient'));
+	    $manager->persist($customer);
+
 			// creation d'une vingtaine utilisateur
 	    for ($i = 0; $i <= 20; $i++) {
 		    $user = new Utilisateur();
 				$user->setName("User one");
-				$user->setEmail("user@bilemo.com");
+				$user->setEmail("user.$i@bilemo.com");
 				$user->setCodeClient($admin->getCode());
 				$user->setClient($admin);
 				$manager->persist($user);

@@ -15,9 +15,11 @@ use Hateoas\Configuration\Annotation as Hateoas;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
 #[Serializer\XmlRoot("client")]
-#[Hateoas\Relation("self", href = "expr('/api/clients')" )]
-
-
+#[Hateoas\Relation("self", )]
+/**
+ * Serializer\XmlRoot("clients")
+ * Hateoas\Relation("self", href="expr('/api/clients')")
+ */
 
 
 class Client implements UserInterface, PasswordAuthenticatedUserInterface
