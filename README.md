@@ -4,7 +4,7 @@ Résultat sur codacy : [![Codacy Badge](https://app.codacy.com/project/badge/Gra
 
 # Resquirement
  - Symfony 6 
- - PHP 8.0
+ - PHP 8.1
  - MySQL 8
 
 # Documentation OpenApi 
