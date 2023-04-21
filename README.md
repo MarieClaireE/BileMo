@@ -23,4 +23,4 @@ l'URI `/api/login_check`.
 4. Si vous n'avez pas encore créer votre base de données, après vous 
 êtes placé dans le répertoire du projet, faites un `php bin/console doctrine:database:create`.
 Ensuite créez les différentes tables du projet en faisant un `php bin/console doctrine:migration:migrate`
-5. Une fois la base de données créée lancer `php bin/console doctrine:fixture:load` pour remplir avec des données la base de données.
+5. Une fois la base de données créée lancer `php bin/console doctrine:fixtures:load` pour remplir avec des données la base de données.
