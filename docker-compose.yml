@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  php-fpm:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    container_name: bileMo-php
+    volumes:
+      - type: bind
+        source: .
+        target: /var/www/html
+    depends_on:
+      - mysql
+  mysql:
+    image: mysql:5.7
+    container_name: bileMo-mysql
+    ports:
+      - "6603:3306"
+    environment:
+      MYSQL_DATABASE: bileMo
+      MYSQL_ROOT_PASSWORD: bileMo
+      MYSQL_USER: user
+      MYSQL_PASSWORD: bileMo
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+  nginx:
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    container_name: bileMo-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - type: bind
+        source: .
+        target: /var/www/html
+    depends_on:
+      - php-fpm

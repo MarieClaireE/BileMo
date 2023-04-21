@@ -6,7 +6,7 @@
     },
     "servers": [
       {
-        "url": "http://api.bilemo.com/api"
+        "url": "http://localhost/api/"
       }
     ],
     "tags": [
@@ -157,39 +157,6 @@
           "security": [
             
           ]
-        }
-      },
-      "/clients": {
-        "get": {
-          "security": [
-            {
-              "JWT": [
-                
-              ]
-            }
-          ],
-          "tags": [
-            "Client"
-          ],
-          "summary": "Returns a list of customers.",
-          "responses": {
-            "200": {
-              "description": "A JSON array returning id, email and role of customers.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Client"
-                    }
-                  }
-                }
-              }
-            },
-            "401": {
-              "$ref": "#/components/responses/UnauthorizedError"
-            }
-          }
         }
       },
       "/clients/{clientId}": {

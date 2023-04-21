@@ -6,6 +6,9 @@ use App\Entity\Client;
 use App\Entity\Produit;
 use App\Repository\ClientRepository;
 use App\Repository\ProduitRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Hateoas\Hateoas;
+use Hateoas\HateoasBuilder;
 use PHPUnit\Util\Json;
 use Psr\Cache\InvalidArgumentException;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -23,8 +26,21 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class ProduitController extends AbstractController
 {
 
-		public const CACHE_KEY_GETALLPRODUCTS = "getAllProducts";
-		public const CACHE_KEY_GETALLPRODUCTSBYCUSTOMER = "getAllProductsBycustomer";
+	private TagAwareCacheInterface $cachePool;
+	private EntityManagerInterface $em;
+	private Hateoas $serializer;
+	private UrlGeneratorInterface $urlGenerator;
+	public const CACHE_KEY_GETALLPRODUCTS = "getAllProducts";
+	public const CACHE_KEY_GETALLPRODUCTSBYCUSTOMER = "getAllProductsBycustomer";
+
+	public function __construct(EntityManagerInterface $em, TagAwareCacheInterface $cachePool, UrlGeneratorInterface $urlGenerator) {
+		$this->em = $em;
+		$this->cachePool = $cachePool;
+		$this->serializer = HateoasBuilder::create()->build();
+		$this->urlGenerator = $urlGenerator;
+
+		return $this;
+	}
 
 		public function getRepository(): ProduitRepository
 		{
@@ -39,7 +55,7 @@ class ProduitController extends AbstractController
 				$item->tag('productCache');
 				return $this->getRepository()->findAll();
 			});
-			$jsonProductlist = $this->serializer->serialize($productlist, 'json', ['groups' => 'getProduits']);
+			$jsonProductlist = $this->serializer->serialize($productlist, 'json');
 
 			return new JsonResponse(
 				$jsonProductlist, Response::HTTP_OK, [], true
@@ -64,12 +80,12 @@ class ProduitController extends AbstractController
 		#[Route('/api/produits/{id}', name: 'details_produit', methods:['GET'] )]
 		public function getDetailProduit(Produit $produit): JsonResponse
 		{
-			$jsonProduit = $this->serializer->serialize($produit, 'json', ['groups' => 'getProduits']);
+			$jsonProduit = $this->serializer->serialize($produit, 'json');
 
 			return new JsonResponse($jsonProduit,Response::HTTP_OK, ['accept' => 'json'],true);
 		}
 
-		#[Route('/api/produits/', name:'creation_produits', methods:['POST'] )]
+		#[Route('/api/produits', name:'creation_produits', methods:['POST'] )]
 		public function postProduit(Request $request): JsonResponse
 		{
 			$client = $this->getUser();
@@ -88,8 +104,7 @@ class ProduitController extends AbstractController
 
 			$jsonProduct = $this->serializer->serialize(
 					$produit,
-					'json',
-					['groups' => 'getProduits']
+					'json'
 				);
 
 			$location = $this->urlGenerator->generate(
@@ -112,7 +127,7 @@ class ProduitController extends AbstractController
 			$message = '';
 
 			$client = $this->getUser();
-			$produit = $this->getRepository()->findBy(['id' => $id, 'client' => $client]);
+			$produit = $this->getRepository()->findOneBy(['id' => $id, 'client' => $client]);
 
 
 			if($produit === null) {
@@ -140,8 +155,7 @@ class ProduitController extends AbstractController
 				$updateProduct = $this->serializer->deserialize(
 					$request->getContent(),
 					Produit::class,
-					'json',
-					[AbstractNormalizer::OBJECT_TO_POPULATE => $produit]);
+					'json');
 
 				$this->em->persist($updateProduct);
 				$this->em->flush();

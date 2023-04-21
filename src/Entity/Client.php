@@ -14,18 +14,14 @@ use JMS\Serializer\Annotation as Serializer;
 use Hateoas\Configuration\Annotation as Hateoas;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
-#[Serializer\XmlRoot("client")]
-#[Hateoas\Relation("self", )]
 /**
- * Serializer\XmlRoot("clients")
- * Hateoas\Relation("self", href="expr('/api/clients')")
+ * @Serializer\XmlRoot("client")
+ * @Hateoas\Relation("self", href="expr('/api/clients/' ~ object.getId())")
  */
-
-
 class Client implements UserInterface, PasswordAuthenticatedUserInterface
 {
-		#[Serializer\XmlAttribute]
 
+		#[Serializer\XmlAttribute]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -52,9 +48,11 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $fullname = null;
 
+		/** @Serializer\Exclude  */
     #[ORM\OneToMany(mappedBy: 'client', targetEntity: Produit::class)]
     private Collection $produits;
 
+		/** @Serializer\Exclude  */
     #[ORM\OneToMany(mappedBy: 'client', targetEntity: Utilisateur::class)]
     private Collection $utilisateurs;
 

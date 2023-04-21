@@ -6,6 +6,9 @@
 	use App\Entity\Utilisateur;
 	use App\Repository\ClientRepository;
 	use App\Repository\UtilisateurRepository;
+	use Doctrine\ORM\EntityManagerInterface;
+	use Hateoas\Hateoas;
+	use Hateoas\HateoasBuilder;
 	use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 	use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 	use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,22 +18,32 @@
 	use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 	use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 	use Symfony\Contracts\Cache\ItemInterface;
+	use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 
 	class UtilisateurController extends AbstractController
 	{
+		private TagAwareCacheInterface $cachePool;
+		private EntityManagerInterface $em;
+		private Hateoas $serializer;
+		private UrlGeneratorInterface $urlGenerator;
 		public const CACHE_KEY_GETALLUSERSBYCUSTOMER = "getAllUsersByCustomer";
 		public const CACHE_KEY_GETALLUSERS = "getAllUsers";
+
+		public function __construct(EntityManagerInterface $em, TagAwareCacheInterface $cachePool, UrlGeneratorInterface $urlGenerator) {
+			$this->em = $em;
+			$this->cachePool = $cachePool;
+			$this->serializer = HateoasBuilder::create()->build();
+			$this->urlGenerator = $urlGenerator;
+
+			return $this;
+		}
 
 		public function getRepository(): UtilisateurRepository
 		{
 			return $this->em->getRepository(Utilisateur::class);
 		}
 
-		/**
-		 * @return JsonResponse
-		 * @throws InvalidArgumentException
-		 */
 		#[Route('/api/utilisateurs', name:'liste_utilisateurs_par_clients', methods:['GET'])]
 		public function getListUsersByCustomer(Request $request): JsonResponse
 		{
@@ -43,7 +56,7 @@
 					return $this->getRepository()->findByClient($client, $page, $limit);;
 				});
 
-			$jsonListUsers = $this->serializer->serialize($usersList, 'json', ['groups' => 'getUtilisateurs']);
+			$jsonListUsers = $this->serializer->serialize($usersList, 'json');
 
 			return new JsonResponse($jsonListUsers, Response::HTTP_OK, [], true);
 		}
@@ -70,7 +83,7 @@
 		public function getDetailsUsers(int $id): JsonResponse
 		{
 			$user = $this->getRepository()->find($id);
-			$jsonUser = $this->serializer->serialize($user, 'json', ['groups' => 'getUtilisateurs']);
+			$jsonUser = $this->serializer->serialize($user, 'json');
 			return new JsonResponse($jsonUser, Response::HTTP_OK, ['accept' => 'json'], true);
 		}
 
@@ -95,8 +108,7 @@
 
 			$jsonUser = $this->serializer->serialize(
 				$user,
-				'json',
-				['groups' => 'getUtilisateurs']
+				'json'
 			);
 
 			$location = $this->urlGenerator->generate(
@@ -121,8 +133,7 @@
 				$updateUser = $this->serializer->deserialize(
 					$request->getContent(),
 					Utilisateur::class,
-					'json',
-					[AbstractNormalizer::OBJECT_TO_POPULATE => $user]
+					'json'
 				);
 
 				$this->em->persist($updateUser);

@@ -5,11 +5,20 @@ namespace App\Entity;
 use App\Repository\ProduitRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation as Serializer;
+use Hateoas\Configuration\Annotation as Hateoas;
 use Symfony\Component\Serializer\Annotation\Groups;
 
+
 #[ORM\Entity(repositoryClass: ProduitRepository::class)]
+/**
+ * @Serializer\XmlRoot("produit")
+ * @Hateoas\Relation("list", href="expr('/api/produits/')")
+ * @Hateoas\Relation("self", href="expr('/api/produits/' ~ object.getId())")
+ */
 class Produit
 {
+		#[Serializer\XmlAttribute]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -28,6 +37,7 @@ class Produit
     #[Groups(["getProduits"])]
     private ?string $price = null;
 
+		/** @Serializer\Exclude  */
     #[ORM\ManyToOne(inversedBy: 'produits')]
     #[Groups(["getProduits"])]
     private ?Client $client = null;

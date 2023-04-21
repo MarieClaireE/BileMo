@@ -5,11 +5,20 @@ namespace App\Entity;
 use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation as Serializer;
+use Hateoas\Configuration\Annotation as Hateoas;
 
 #[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
+
+/**
+ * @Serializer\XmlRoot("utilisateur")
+ * @Hateoas\Relation("list", href="expr('/api/utilisateurs/')")
+ * @Hateoas\Relation("self", href="expr('/api/utilisateurs/' ~ object.getId())")
+ */
 class Utilisateur
 {
-    #[ORM\Id]
+		#[Serializer\XmlAttribute]
+		#[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     #[Groups(["getClients", "getProduits", "getUtilisateurs"])]
@@ -27,7 +36,8 @@ class Utilisateur
     #[Groups(["getClients", "getProduits", "getUtlisateurs"])]
     private ?string $codeClient = null;
 
-    #[ORM\ManyToOne(inversedBy: 'utilisateurs')]
+		/** @Serializer\Exclude  */
+		#[ORM\ManyToOne(inversedBy: 'utilisateurs')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Client $client = null;
 
