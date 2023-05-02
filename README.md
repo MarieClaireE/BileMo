@@ -10,6 +10,9 @@ Résultat sur codacy : [![Codacy Badge](https://app.codacy.com/project/badge/Gra
 # Documentation OpenApi 
 Ouvrir la documentation en local, avec le dossier `/docs`.
 
+# Diagrammes
+Les diagrammes se trouvent dans le dossier `diagramms/`.
+
 # Information sur l'API 
 1. Le token d'authentification s'obtient via l'envoi des identifiants sur 
 l'URI `/api/login_check`.
