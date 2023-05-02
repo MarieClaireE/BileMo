@@ -14,6 +14,11 @@ Ouvrir la documentation en local, avec le dossier `/docs`.
 1. Le token d'authentification s'obtient via l'envoi des identifiants sur 
 l'URI `/api/login_check`.
 
+# Information docker 
+L'API peut fonctionner sous docker. Pour cela, il vous suffit de lancer le docker desktop.
+1. Verifier les informations dans le `docker-compose.yml`
+2. Mettre à jour les données de la base de données dans le fichier `.env.local`
+3. Lancer le docker via `docker compose up`
 
 # Installation du projet 
 1. Cloner ou télécharger le projet :
@@ -24,3 +29,13 @@ l'URI `/api/login_check`.
 êtes placé dans le répertoire du projet, faites un `php bin/console doctrine:database:create`.
 Ensuite créez les différentes tables du projet en faisant un `php bin/console doctrine:migration:migrate`
 5. Une fois la base de données créée lancer `php bin/console doctrine:fixtures:load` pour remplir avec des données la base de données.
+6. Générer vos clés pour l'utilisation de JWT Token
+   >`$ mkdir -p config/jwt
+   $ openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
+   $ openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout`
+7. Renseigner vos paramètres de configuration dans votre ficher .env
+   >`###> lexik/jwt-authentication-bundle ###
+    JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+    JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+    JWT_PASSPHRASE=VotrePassePhrase
+    ###< lexik/jwt-authentication-bundle ###`
