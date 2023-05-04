@@ -16,6 +16,11 @@ Les diagrammes se trouvent dans le dossier `diagramms/`.
 # Information sur l'API 
 1. Le token d'authentification s'obtient via l'envoi des identifiants sur 
 l'URI `/api/login_check`.
+2. Le couple email, password pour permettre une première connexion :
+> `'username': 'admin@bilemo.com'`
+> 
+> `'password': 'passwordAdmin'`
+
 
 # Information docker 
 L'API peut fonctionner sous docker. Pour cela, il vous suffit de lancer le docker desktop.
@@ -32,10 +37,14 @@ L'API peut fonctionner sous docker. Pour cela, il vous suffit de lancer le docke
 êtes placé dans le répertoire du projet, faites un `php bin/console doctrine:database:create`.
 Ensuite créez les différentes tables du projet en faisant un `php bin/console doctrine:migration:migrate`
 5. Une fois la base de données créée lancer `php bin/console doctrine:fixtures:load` pour remplir avec des données la base de données.
+
 6. Générer vos clés pour l'utilisation de JWT Token
-   >`$ mkdir -p config/jwt
-   $ openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
-   $ openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout`
+   > `$ mkdir -p config/jwt`
+   > 
+   > `$ openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096`
+   > 
+   > `$ openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout`
+
 7. Renseigner vos paramètres de configuration dans votre ficher .env
    >`###> lexik/jwt-authentication-bundle ###
     JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
