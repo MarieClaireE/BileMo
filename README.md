@@ -2,7 +2,7 @@
 
 Résultat sur codacy : [![Codacy Badge](https://app.codacy.com/project/badge/Grade/29cd0e629f534a31889b00f839c1a9f8)](https://www.codacy.com/gh/MarieClaireE/BileMo/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MarieClaireE/BileMo&amp;utm_campaign=Badge_Grade)
 
-# Resquirement
+# Requirement
  - Symfony 6 
  - PHP 8.1
  - MySQL 8
